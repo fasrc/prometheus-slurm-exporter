@@ -12,7 +12,7 @@ from os import path
 import yaml
 
 prefix = os.path.normpath(
-    os.path.join(os.path.abspath(os.path.dirname(__file__)), '..')
+    os.path.join(os.path.abspath(os.path.dirname(__file__)))
 )
 external = os.path.join(prefix, 'external')
 sys.path = [prefix, external] + sys.path
