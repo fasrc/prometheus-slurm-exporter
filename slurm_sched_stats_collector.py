@@ -77,10 +77,6 @@ class SlurmSchedStatsCollector(Collector):
       sdiag.add_metric(['bf_last_cycle'],sd['bLastcycle'])
       sdiag.add_metric(['bf_max_cycle'],sd['bMaxcycle'])
       sdiag.add_metric(['bf_queue_length'],sd['bLastqueuelength'])
-      bMeancycle=''
-      bDepthMean=''
-      bDepthMeantrydepth=''
-      bQueuelengthmean=''
       sdiag.add_metric(['bf_mean_cycle'], (sd['bMeancycle'] if 'bMeancycle' in sd else 0))
       sdiag.add_metric(['bf_depth_mean'], (sd['bDepthMean'] if 'bDepthMean' in sd else 0))
       sdiag.add_metric(['bf_depth_mean_try'], (sd['bDepthMeantrydepth'] if 'bDepthMeantrydepth' in sd else 0))
