@@ -59,7 +59,7 @@ class SlurmSchedStatsCollector(object):
 
       # Slurmctld Stats
 
-       server_thread_count.set(sd['Serverthreadcount'])
+      server_thread_count.set(sd['Serverthreadcount'])
 #      self.publish('agent_queue_size',sd['Agentqueuesize'])
 #  
 #      # Jobs Stats
