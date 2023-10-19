@@ -18,11 +18,12 @@ external = os.path.join(prefix, 'external')
 sys.path = [prefix, external] + sys.path
 
 from prometheus_client.core import Gauge, REGISTRY
+from prometheus_client.registry import Collector
 from prometheus_client import start_http_server
 
 server_thread_count = Gauge('sdiag_server_thread_count', 'Server thread count from sdiag') 
 
-class SlurmSchedStatsCollector(object):
+class SlurmSchedStatsCollector(Collector):
   def __init__(self):
     pass
   def collect(self):
