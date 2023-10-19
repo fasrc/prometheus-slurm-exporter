@@ -22,13 +22,6 @@ from prometheus_client import start_http_server
 
 server_thread_count = Gauge('sdiag_server_thread_count', 'Server thread count from sdiag') 
 
-if __name__ == "__main__":
-  start_http_server(9000)
-  REGISTRY.register(SlurmSchedStatsCollector())
-  while True: 
-    # period between collection
-    time.sleep(30)
-
 class SlurmSchedStatsCollector(object):
   def __init__(self):
     pass
@@ -96,4 +89,9 @@ class SlurmSchedStatsCollector(object):
 #      self.publish('bf_last_depth_cycle',sd['bLastdepthcycle'])
 #      self.publish('bf_last_depth_cycle_try',sd['bLastdepthcycletrysched'])
 
-
+if __name__ == "__main__":
+  start_http_server(9000)
+  REGISTRY.register(SlurmSchedStatsCollector())
+  while True: 
+    # period between collection
+    time.sleep(30)
