@@ -81,10 +81,10 @@ class SlurmSchedStatsCollector(Collector):
       bDepthMean=''
       bDepthMeantrydepth=''
       bQueuelengthmean=''
-      sdiag.add_metric(['bf_mean_cycle'], (sd['bMeancycle'] if bMeancycle in sd['bMeancycle'] else 0))
-      sdiag.add_metric(['bf_depth_mean'], (sd['bDepthMean'] if bDepthMean in sd['bDepthMean'] else 0))
-      sdiag.add_metric(['bf_depth_mean_try'], (sd['bDepthMeantrydepth'] if bDepthMeantrydepth in sd['bDepthMeantrydepth'] else 0))
-      sdiag.add_metric(['bf_queue_length_mean'], (sd['bQueuelengthmean'] if bQueuelengthmean in sd['bQueuelengthmean'] else 0))
+      sdiag.add_metric(['bf_mean_cycle'], (sd['bMeancycle'] if 'bMeancycle' in sd else 0))
+      sdiag.add_metric(['bf_depth_mean'], (sd['bDepthMean'] if 'bDepthMean' in sd else 0))
+      sdiag.add_metric(['bf_depth_mean_try'], (sd['bDepthMeantrydepth'] if 'bDepthMeantrydepth' in sd else 0))
+      sdiag.add_metric(['bf_queue_length_mean'], (sd['bQueuelengthmean'] if 'bQueuelengthmean' in sd else 0))
       sdiag.add_metric(['bf_last_depth_cycle'],sd['bLastdepthcycle'])
       sdiag.add_metric(['bf_last_depth_cycle_try'],sd['bLastdepthcycletrysched'])
       yield sdiag
