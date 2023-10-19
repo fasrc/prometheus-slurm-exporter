@@ -23,7 +23,7 @@ from prometheus_client import start_http_server
 server_thread_count = Gauge('sdiag_server_thread_count', 'Server thread count from sdiag') 
 
 if __name__ == "__main__":
-  start_http_server(8090)
+  start_http_server(9000)
   REGISTRY.register(SlurmSchedStatsCollector())
   while True: 
     # period between collection
