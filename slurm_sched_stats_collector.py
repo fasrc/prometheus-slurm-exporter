@@ -51,6 +51,7 @@ class SlurmSchedStatsCollector(Collector):
      
 
       sdiag.add_metric(['server_thread_count'],sd['Serverthreadcount'])
+      sdiag.add_metric(['agent_queue_size'],sd['Agentqueuesize'])
       yield sdiag
 #      self.publish('agent_queue_size',sd['Agentqueuesize'])
 #  
