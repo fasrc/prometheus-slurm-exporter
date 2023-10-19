@@ -47,7 +47,7 @@ class SlurmSchedStatsCollector(Collector):
           sd.update(dict(s.split(":", 1) for s in shlex.split(line) if ':' in s))
 
       # Slurmctld Stats
-      sdiag = GaugeMetricFamily('sdiag', 'Stats from sdiag', labels=['sdiag'])
+      sdiag = GaugeMetricFamily('sdiag', 'Stats from sdiag', labels=['field'])
      
 
       sdiag.add_metric(['server_thread_count'],sd['Serverthreadcount'])
