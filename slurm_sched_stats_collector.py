@@ -17,11 +17,9 @@ prefix = os.path.normpath(
 external = os.path.join(prefix, 'external')
 sys.path = [prefix, external] + sys.path
 
-from prometheus_client.core import Gauge, REGISTRY
+from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_client.registry import Collector
 from prometheus_client import start_http_server
-
-server_thread_count = Gauge('sdiag_server_thread_count', 'Server thread count from sdiag') 
 
 class SlurmSchedStatsCollector(Collector):
   def __init__(self):
@@ -49,8 +47,10 @@ class SlurmSchedStatsCollector(Collector):
           sd.update(dict(s.split(":", 1) for s in shlex.split(line) if ':' in s))
 
       # Slurmctld Stats
+      sdiag = GaugeMetricFamily('sdiag', 'Stats from sdiag')
+     
 
-      server_thread_count.set(sd['Serverthreadcount'])
+      sdiag.add_metric(['server_thread_count'],sd['Serverthreadcount'])
 #      self.publish('agent_queue_size',sd['Agentqueuesize'])
 #  
 #      # Jobs Stats
