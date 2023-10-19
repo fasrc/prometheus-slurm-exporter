@@ -52,42 +52,42 @@ class SlurmSchedStatsCollector(Collector):
 
       sdiag.add_metric(['server_thread_count'],sd['Serverthreadcount'])
       sdiag.add_metric(['agent_queue_size'],sd['Agentqueuesize'])
+      sdiag.add_metric(['agent_queue_size'],sd['Agentqueuesize'])
+  
+      # Jobs Stats
+      sdiag.add_metric(['jobs_submitted'],sd['Jobssubmitted'])
+      sdiag.add_metric(['jobs_started'],sd['Jobsstarted'])
+      sdiag.add_metric(['jobs_completed'],sd['Jobscompleted'])
+      sdiag.add_metric(['jobs_canceled'],sd['Jobscanceled'])
+      sdiag.add_metric(['jobs_failed'],sd['Jobsfailed'])
+  
+      # Main Scheduler Stats
+      sdiag.add_metric(['main_last_cycle'],sd['mLastcycle'])
+      sdiag.add_metric(['main_max_cycle'],sd['mMaxcycle'])
+      sdiag.add_metric(['main_total_cycles'],sd['mTotalcycles'])
+      sdiag.add_metric(['main_mean_cycle'],sd['mMeancycle'])
+      sdiag.add_metric(['main_mean_depth_cycle'],sd['mMeandepthcycle'])
+      sdiag.add_metric(['main_cycles_per_minute'],sd['mCyclesperminute'])  
+      sdiag.add_metric(['main_last_queue_length'],sd['mLastqueuelength'])
+  
+      # Backfilling stats
+      sdiag.add_metric(['bf_total_jobs_since_slurm_start'],sd['bTotalbackfilledjobssincelastslurmstart'])
+      sdiag.add_metric(['bf_total_jobs_since_cycle_start'],sd['bTotalbackfilledjobssincelaststatscyclestart'])
+      sdiag.add_metric(['bf_total_cycles'],sd['bTotalcycles'])
+      sdiag.add_metric(['bf_last_cycle'],sd['bLastcycle'])
+      sdiag.add_metric(['bf_max_cycle'],sd['bMaxcycle'])
+      sdiag.add_metric(['bf_queue_length'],sd['bLastqueuelength'])
+      bMeancycle=''
+      bDepthMean=''
+      bDepthMeantrydepth=''
+      bQueuelengthmean=''
+      sdiag.add_metric(['bf_mean_cycle'], (sd['bMeancycle'] if bMeancycle in sd['bMeancycle'] else 0))
+      sdiag.add_metric(['bf_depth_mean'], (sd['bDepthMean'] if bDepthMean in sd['bDepthMean'] else 0))
+      sdiag.add_metric(['bf_depth_mean_try'], (sd['bDepthMeantrydepth'] if bDepthMeantrydepth in sd['bDepthMeantrydepth'] else 0))
+      sdiag.add_metric(['bf_queue_length_mean'], (sd['bQueuelengthmean'] if bQueuelengthmean in sd['bQueuelengthmean'] else 0))
+      sdiag.add_metric(['bf_last_depth_cycle'],sd['bLastdepthcycle'])
+      sdiag.add_metric(['bf_last_depth_cycle_try'],sd['bLastdepthcycletrysched'])
       yield sdiag
-#      self.publish('agent_queue_size',sd['Agentqueuesize'])
-#  
-#      # Jobs Stats
-#      self.publish('jobs_submitted',sd['Jobssubmitted'])
-#      self.publish('jobs_started',sd['Jobsstarted'])
-#      self.publish('jobs_completed',sd['Jobscompleted'])
-#      self.publish('jobs_canceled',sd['Jobscanceled'])
-#      self.publish('jobs_failed',sd['Jobsfailed'])
-#  
-#      # Main Scheduler Stats
-#      self.publish('main_last_cycle',sd['mLastcycle'])
-#      self.publish('main_max_cycle',sd['mMaxcycle'])
-#      self.publish('main_total_cycles',sd['mTotalcycles'])
-#      self.publish('main_mean_cycle',sd['mMeancycle'])
-#      self.publish('main_mean_depth_cycle',sd['mMeandepthcycle'])
-#      self.publish('main_cycles_per_minute',sd['mCyclesperminute'])  
-#      self.publish('main_last_queue_length',sd['mLastqueuelength'])
-#  
-#      # Backfilling stats
-#      self.publish('bf_total_jobs_since_slurm_start',sd['bTotalbackfilledjobssincelastslurmstart'])
-#      self.publish('bf_total_jobs_since_cycle_start',sd['bTotalbackfilledjobssincelaststatscyclestart'])
-#      self.publish('bf_total_cycles',sd['bTotalcycles'])
-#      self.publish('bf_last_cycle',sd['bLastcycle'])
-#      self.publish('bf_max_cycle',sd['bMaxcycle'])
-#      self.publish('bf_queue_length',sd['bLastqueuelength'])
-#      bMeancycle=''
-#      bDepthMean=''
-#      bDepthMeantrydepth=''
-#      bQueuelengthmean=''
-#      self.publish('bf_mean_cycle', (sd['bMeancycle'] if bMeancycle in sd['bMeancycle'] else 0))
-#      self.publish('bf_depth_mean', (sd['bDepthMean'] if bDepthMean in sd['bDepthMean'] else 0))
-#      self.publish('bf_depth_mean_try', (sd['bDepthMeantrydepth'] if bDepthMeantrydepth in sd['bDepthMeantrydepth'] else 0))
-#      self.publish('bf_queue_length_mean', (sd['bQueuelengthmean'] if bQueuelengthmean in sd['bQueuelengthmean'] else 0))
-#      self.publish('bf_last_depth_cycle',sd['bLastdepthcycle'])
-#      self.publish('bf_last_depth_cycle_try',sd['bLastdepthcycletrysched'])
 
 if __name__ == "__main__":
   start_http_server(9000)
