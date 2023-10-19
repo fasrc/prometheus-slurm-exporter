@@ -25,15 +25,12 @@ server_thread_count = Gauge('sdiag_server_thread_count', 'Server thread count fr
 class SlurmSchedStatsCollector(object):
   def __init__(self):
     pass
-
   def collect(self):
-
     try:
       proc = subprocess.Popen('sdiag', stdout=subprocess.PIPE, universal_newlines=True)
     except:
       return
     else:
-
       # Construct dictionary of stats
       sd = dict()
       pl = ""
