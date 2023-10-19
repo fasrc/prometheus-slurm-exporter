@@ -17,7 +17,7 @@ prefix = os.path.normpath(
 external = os.path.join(prefix, 'external')
 sys.path = [prefix, external] + sys.path
 
-from prometheus_client.core import GaugeMetricFamily, REGISTRY, CounterMetricFamily
+from prometheus_client.core import Gauge, REGISTRY
 from prometheus_client import start_http_server
 
 server_thread_count = Gauge('sdiag_server_thread_count', 'Server thread count from sdiag') 
