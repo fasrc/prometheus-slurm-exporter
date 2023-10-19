@@ -294,6 +294,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["uggflops"],uggflops)
       lsload.add_metric(["tgflops"],tgflops)
       lsload.add_metric(["ugflops"],ugflops)
+      yield lsload
 
 if __name__ == "__main__":
   start_http_server(9001)
