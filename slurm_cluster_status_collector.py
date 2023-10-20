@@ -297,7 +297,7 @@ class SlurmClusterStatusCollector(Collector):
       yield lsload
 
 if __name__ == "__main__":
-  start_http_server(9001)
+  start_http_server(9002)
   REGISTRY.register(SlurmClusterStatusCollector())
   while True: 
     # period between collection

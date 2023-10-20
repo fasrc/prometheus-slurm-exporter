@@ -86,7 +86,7 @@ class SlurmSchedStatsCollector(Collector):
       yield sdiag
 
 if __name__ == "__main__":
-  start_http_server(9000)
+  start_http_server(9001)
   REGISTRY.register(SlurmSchedStatsCollector())
   while True: 
     # period between collection
