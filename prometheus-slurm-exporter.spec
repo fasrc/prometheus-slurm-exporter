@@ -35,33 +35,6 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exportersystemd/prometheus-sl
 %{_unitdir}/prometheus-slurm-exporter-sshare.service
 %{_unitdir}/prometheus-slurm-exporter-seas.service
 
-%post lsload
-%systemd_post prometheus-slurm-exporter-lsload.service
-%preun lsload
-%systemd_preun prometheus-slurm-exporter-lsload.service
-%postun lsload
-%systemd_postun_with_restart prometheus-slurm-exporter-lsload.service
-
-%post sdiag
-%systemd_post prometheus-slurm-exporter-sdiag.service
-%preun sdiag
-%systemd_preun prometheus-slurm-exporter-sdiag.service
-%postun sdiag
-%systemd_postun_with_restart prometheus-slurm-exporter-sdiag.service
-
-%post sshare
-%systemd_post prometheus-slurm-exporter-sshare.service
-%preun sshare
-%systemd_preun prometheus-slurm-exporter-sshare.service
-%postun sshare
-%systemd_postun_with_restart prometheus-slurm-exporter-sshare.service
-
-%post seas
-%systemd_post prometheus-slurm-exporter-seas.service
-%preun seas
-%systemd_preun prometheus-slurm-exporter-seas.service
-%postun seas
-%systemd_postun_with_restart prometheus-slurm-exporter-seas.service
 
 %changelog
 * Fri Oct 20 2023 Paul Edmon <pedmon@cfa.harvard.edu>
