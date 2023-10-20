@@ -2,7 +2,7 @@
 Description=Prometheus SLURM Exporter for SEAS
 
 [Service]
-ExecStart=/usr/sbin/slurm_seas_stats_collector.py
+ExecStart=/opt/prometheus-slurm-exporter/slurm_seas_stats_collector.py
 Restart=always
 RestartSec=15
 

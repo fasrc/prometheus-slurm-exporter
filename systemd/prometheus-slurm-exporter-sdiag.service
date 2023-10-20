@@ -2,7 +2,7 @@
 Description=Prometheus SLURM Exporter for SlurmSchedStatsCollector
 
 [Service]
-ExecStart=/usr/sbin/slurm_sched_stats_collector.py
+ExecStart=/opt/prometheus-slurm-exporter/slurm_sched_stats_collector.py
 Restart=always
 RestartSec=15
 

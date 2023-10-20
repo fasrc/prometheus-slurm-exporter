@@ -2,7 +2,7 @@
 Description=Prometheus SLURM Exporter for SlurmClusterStatusCollector
 
 [Service]
-ExecStart=/usr/sbin/slurm_cluster_status_collector.py
+ExecStart=/opt/prometheus-slurm-exporter/slurm_cluster_status_collector.py
 Restart=always
 RestartSec=15
 

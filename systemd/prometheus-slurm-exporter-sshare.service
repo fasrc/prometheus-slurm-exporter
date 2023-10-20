@@ -2,7 +2,7 @@
 Description=Prometheus SLURM Exporter for SlurmSshareCollector
 
 [Service]
-ExecStart=/usr/sbin/slurm_sshare_collector.py
+ExecStart=/opt/prometheus-slurm-exporter/slurm_sshare_collector.py
 Restart=always
 RestartSec=15
 
