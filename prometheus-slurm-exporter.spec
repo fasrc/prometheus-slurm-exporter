@@ -6,9 +6,6 @@ Summary:        Prometheus Exporter for Slurm
 License:        See LICENSE file in gitrepo.
 URL:            https://github.com/fasrc/prometheus-slurm-exporter
 
-BuildRequires:
-Requires:
-
 %description
 Prometheus Exporter for Slurm. Uses the prometheus python implementation.
 
