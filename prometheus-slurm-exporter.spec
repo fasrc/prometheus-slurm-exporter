@@ -15,6 +15,7 @@ Prometheus Exporter for Slurm. Uses the prometheus python implementation.
 rm -rf prometheus-slurm-exporter
 git clone https://github.com/fasrc/prometheus-slurm-exporter.git
 cd prometheus-slurm-exporter
+rm -rf .git
 ./bootstrap.sh
 
 %install
