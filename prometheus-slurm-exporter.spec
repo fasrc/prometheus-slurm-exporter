@@ -3,7 +3,7 @@ Version:        1.0
 Release:        1%{?dist}
 Summary:        Prometheus Exporter for Slurm
 
-License:
+License:        See LICENSE file in gitrepo.
 URL:
 Source0:
 
