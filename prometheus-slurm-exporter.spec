@@ -4,8 +4,7 @@ Release:        1%{?dist}
 Summary:        Prometheus Exporter for Slurm
 
 License:        See LICENSE file in gitrepo.
-URL:
-Source0:
+URL:            https://github.com/fasrc/prometheus-slurm-exporter
 
 BuildRequires:
 Requires:
