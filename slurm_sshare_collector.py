@@ -50,7 +50,7 @@ class SlurmSshareCollector(Collector):
           sshare.add_metric([Account,User,'normshares'],NormShares)
           sshare.add_metric([Account,User,'rawusage'],RawUsage)
           sshare.add_metric([Account,User,'normusage'],NormUsage)
-          sshare.add_metric([Account,User,'fairshare']),Fairshare)
+          sshare.add_metric([Account,User,'fairshare'],Fairshare)
       yield sshare
 
 if __name__ == "__main__":
