@@ -16,6 +16,7 @@ rm -rf prometheus-slurm-exporter
 git clone https://github.com/fasrc/prometheus-slurm-exporter.git
 cd prometheus-slurm-exporter
 rm -rf .git
+t, -rf .gitignore
 ./bootstrap.sh
 
 %install
