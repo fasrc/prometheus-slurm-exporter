@@ -73,7 +73,7 @@ class SlurmSeasStatsCollector(Collector):
       rave = float(rtot)/float(jcnt)
       pave = float(ptot)/float(jcnt)
 
-      seas.add_metric(["restartave"],rave,precision=2)
+      seas.add_metric(["restartave"],rave)
       seas.add_metric(["pendingave"],pave)
       seas.add_metric(["totseasjobs"],jcnt)
       seas.add_metric(["seaspartjobs"],jseas)
