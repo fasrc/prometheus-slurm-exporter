@@ -13,12 +13,13 @@ Prometheus Exporter for Slurm. Uses the prometheus python implementation.
 
 %build
 git clone https://github.com/fasrc/prometheus-slurm-exporter.git
+cd prometheus-slurm-exporter
 ./bootstrap.sh
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p %{buildroot}/opt/prometheus-slurm-exporter
-rsync -av %{_topdir}/BUILD/%{name}-%{version}/ %{buildroot}/opt/prometheus-slurm-exporter
+rsync -av %{_topdir}/BUILD/%{name}-%{version}/prometheus-slurm-exporter/ %{buildroot}/opt/prometheus-slurm-exporter/
 
 install -D -m644 systemd/prometheus-slurm-exporter-lsload.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-lsload.service
 install -D -m644 systemd/prometheus-slurm-exporter-sdiag.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-sdiag.service
