@@ -21,6 +21,6 @@ This collector grabs the current [sshare](http://slurm.schedmd.com/sshare.html "
 
 This collector pulls the current [state](http://slurm.schedmd.com/scontrol.html "scontrol") of all the nodes in the cluster and then computes overall stats of the cluster such as number of nodes down, number of nodes in use, etc.
 
-### SlurmSeasStats
+### SlurmSeasStatsCollector
 
 This collector pulls stats for Harvard SEAS.
