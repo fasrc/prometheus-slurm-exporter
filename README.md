@@ -28,3 +28,8 @@ This collector pulls stats for Harvard SEAS.
 ## Usage
 
 Simply build the rpm via `rpmbuild -ba prometheus-slurm-exporter.spec` and install then use systemd to run the various unit files to get the exporters running.
+
+
+## Dashboards
+
+You can example dashboards for the various collectors in the `dashboards` directory.
