@@ -193,7 +193,7 @@ class SlurmClusterStatusCollector(Collector):
         if numgpu == 0:
           CurrentWattsCPU=CurrentWattsCPU+int(node['CurrentWatts'])
           AveWattsCPU=AveWattsCPU+int(node['AveWatts'])
-        else
+        else:
           CurrentWattsGPU=CurrentWattsGPU+int(node['CurrentWatts'])
           AveWattsGPU=AveWattsGPU+int(node['AveWatts'])
 
