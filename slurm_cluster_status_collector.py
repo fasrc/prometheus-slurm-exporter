@@ -81,6 +81,8 @@ class SlurmClusterStatusCollector(Collector):
       AveWattsCPU=0
       CurrentWattsGPU=0
       AveWattsGPU=0
+      ncflops=0
+      ngflops=0
       
       tcpu={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
       ucpu={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
@@ -121,9 +123,11 @@ class SlurmClusterStatusCollector(Collector):
             tcpu[f]=tcpu[f]+int(node['CPUTot'])
             ucpu[f]=ucpu[f]+int(node['CPUAlloc'])
             umem[f]=umem[f]+float(node['CPUTot'])*float(node['AllocMem'])/float(node['RealMemory'])
+            cflops=t2g*float(wcpu[f])*int(node['CPUTot'])
           if f in tgpu:
             tgpu[f]=tgpu[f]+numgpu
             ugpu[f]=ugpu[f]+agpu
+            gflops=t2g*float(wgpu[f])*numgpu
 
         #Counters.
         NodeTot=NodeTot+1
@@ -193,9 +197,11 @@ class SlurmClusterStatusCollector(Collector):
         if numgpu == 0:
           CurrentWattsCPU=CurrentWattsCPU+int(node['CurrentWatts'])
           AveWattsCPU=AveWattsCPU+int(node['AveWatts'])
+          ncflops=ncflops+cflops
         else:
           CurrentWattsGPU=CurrentWattsGPU+int(node['CurrentWatts'])
           AveWattsGPU=AveWattsGPU+int(node['AveWatts'])
+          ngflops=ngflops+cflops+gflops
 
       #Calculate Total TRES and Total FLOps
       #This is Harvard specific for the weightings.  Update to match what you need.
@@ -220,6 +226,14 @@ class SlurmClusterStatusCollector(Collector):
       #Total Power
       tcw=CurrentWattsCPU+CurrentWattsGPU
       taw=AveWattsCPU+CurrentWattsGPU
+
+      #Flops Per Watt
+      cfpcw=ncflops/max(float(CurrentWattsCPU),1)
+      gfpcw=ngflops/max(float(CurrentWattsGPU),1)
+      cfpaw=ncflops/max(float(AveWattsCPU),1)
+      gfpaw=ngflops/max(float(AveWattsGPU),1)
+      tfpcw=(ncflops+ngflops)/max(float(tcw),1)
+      tfpaw=(ncflops+ngflops)/max(float(taw),1)
 
       #Ship it.
       lsload = GaugeMetricFamily('lsload', 'Aggregate Cluster Node Stats', labels=['field'])
@@ -271,6 +285,12 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["awgpu"],AveWattsGPU)
       lsload.add_metric(["tcw"],tcw)
       lsload.add_metric(["taw"],taw)
+      lsload.add_metric(["cfpcw"],cfpcw)
+      lsload.add_metric(["gfpcw"],gfpcw)
+      lsload.add_metric(["cfpaw"],cfpaw)
+      lsload.add_metric(["gfpaw"],gfpaw)
+      lsload.add_metric(["tfpcw"],tfpcw)
+      lsload.add_metric(["tfpaw"],tfpaw)
       lsload.add_metric(["tcpuhaswell"],tcpu['haswell'])
       lsload.add_metric(["tcpubroadwell"],tcpu['broadwell'])
       lsload.add_metric(["tcpuskylake"],tcpu['skylake'])
