@@ -80,8 +80,8 @@ class SlurmClusterStatusCollector(Collector):
 
       tcpu={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
       ucpu={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
-      tgpu={'1080': 0, 'titanx': 0, 'p100': 0, 'rtx2080ti': 0, 'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0}
-      ugpu={'1080': 0, 'titanx': 0, 'p100': 0, 'rtx2080ti': 0, 'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0}
+      tgpu={'titanx': 0, 'rtx2080ti': 0, 'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0}
+      ugpu={'titanx': 0, 'rtx2080ti': 0, 'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0}
       umem={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
 
       #Cycle through each node
@@ -181,10 +181,10 @@ class SlurmClusterStatusCollector(Collector):
       #This is Harvard specific for the weightings.  Update to match what you need.
       tcputres=0.4*float(tcpu['haswell']+tcpu['broadwell'])+0.5*float(tcpu['skylake'])+0.5*float(tcpu['milan'])+0.8*float(tcpu['rome'])+1.0*float(tcpu['cascadelake'])+1.15*float(tcpu['icelake'])
       tmemtres=tcputres
-      tgputres=2.2*float(tgpu['titanx']+tgpu['1080'])+75.0*float(tgpu['v100']+tgpu['rtx2080ti']+tgpu['p100'])+10.0*float(tgpu['a40'])+209.1*float(tgpu['a100'])+29.9*float(tgpu['a100-mig'])
+      tgputres=2.2*float(tgpu['titanx'])+75.0*float(tgpu['v100']+tgpu['rtx2080ti'])+10.0*float(tgpu['a40'])+209.1*float(tgpu['a100'])+29.9*float(tgpu['a100-mig'])
       ucputres=0.4*float(ucpu['haswell']+ucpu['broadwell'])+0.5*float(ucpu['skylake'])+0.5*float(ucpu['milan'])+0.8*float(ucpu['rome'])+1.0*float(ucpu['cascadelake'])+1.15*float(ucpu['icelake'])
       umemtres=0.4*float(umem['haswell']+umem['broadwell'])+0.5*float(umem['skylake'])+0.5*float(umem['milan'])+0.8*float(umem['rome'])+1.0*float(umem['cascadelake'])+1.15*float(umem['icelake'])
-      ugputres=2.2*float(ugpu['titanx']+ugpu['1080'])+75.0*float(ugpu['v100']+ugpu['rtx2080ti']+ugpu['p100'])+10.0*float(ugpu['a40'])+209.1*float(ugpu['a100'])+29.9*float(ugpu['a100-mig'])
+      ugputres=2.2*float(ugpu['titanx'])+75.0*float(ugpu['v100']+ugpu['rtx2080ti'])+10.0*float(ugpu['a40'])+209.1*float(ugpu['a100'])+29.9*float(ugpu['a100-mig'])
 
       ttres=tcputres+tmemtres+tgputres
       utres=ucputres+umemtres+ugputres
@@ -251,10 +251,8 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["tcpucascadelake"],tcpu['cascadelake'])
       lsload.add_metric(["tcpuicelake"],tcpu['icelake'])
       lsload.add_metric(["tgputitanx"],tgpu['titanx'])
-      lsload.add_metric(["tgpu1080"],tgpu['1080'])
       lsload.add_metric(["tgpuv100"],tgpu['v100'])
       lsload.add_metric(["tgpurtx2080ti"],tgpu['rtx2080ti'])
-      lsload.add_metric(["tgpup100"],tgpu['p100'])
       lsload.add_metric(["tgpua40"],tgpu['a40'])
       lsload.add_metric(["tgpua100"],tgpu['a100'])
       lsload.add_metric(["tgpua100mig"],tgpu['a100-mig'])
@@ -266,10 +264,8 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["ucpucascadelake"],ucpu['cascadelake'])
       lsload.add_metric(["ucpuicelake"],ucpu['icelake'])
       lsload.add_metric(["ugputitanx"],ugpu['titanx'])
-      lsload.add_metric(["ugpu1080"],ugpu['1080'])
       lsload.add_metric(["ugpuv100"],ugpu['v100'])
       lsload.add_metric(["ugpurtx2080ti"],ugpu['rtx2080ti'])
-      lsload.add_metric(["ugpup100"],ugpu['p100'])
       lsload.add_metric(["ugpua40"],ugpu['a40'])
       lsload.add_metric(["ugpua100"],ugpu['a100'])
       lsload.add_metric(["ugpua100mig"],ugpu['a100-mig'])
