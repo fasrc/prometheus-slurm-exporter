@@ -77,12 +77,23 @@ class SlurmClusterStatusCollector(Collector):
       RESGPU=0
       PLANNEDGPU=0
       PerAlloc=0
-
+      CurrentWattsCPU=0
+      AveWattsCPU=0
+      CurrentWattsGPU=0
+      AveWattsGPU=0
+      
       tcpu={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
       ucpu={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
       tgpu={'titanx': 0, 'rtx2080ti': 0, 'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0}
       ugpu={'titanx': 0, 'rtx2080ti': 0, 'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0}
       umem={'haswell': 0, 'broadwell': 0, 'skylake': 0, 'milan': 0, 'rome': 0, 'cascadelake': 0, 'icelake': 0}
+
+      #Current translation from TRES to Double Precision GFLOps
+      t2g=93.25
+
+      #Current TRES weights
+      wcpu={'haswell': 0.4, 'broadwell': 0.4, 'skylake': 0.5, 'milan': 0.5, 'rome': 0.8, 'cascadelake': 1.0, 'icelake': 1.15}'
+      wgpu={'titanx': 2.2, 'rtx2080ti': 75.0, 'v100': 75.0, 'a40': 10.0, 'a100': 209.1, 'a100-mig': 29.9}
 
       #Cycle through each node
       for line in proc.stdout:
@@ -113,7 +124,6 @@ class SlurmClusterStatusCollector(Collector):
           if f in tgpu:
             tgpu[f]=tgpu[f]+numgpu
             ugpu[f]=ugpu[f]+agpu
-
 
         #Counters.
         NodeTot=NodeTot+1
@@ -177,19 +187,27 @@ class SlurmClusterStatusCollector(Collector):
         #Similarly if all the GPU's on a gpu node are used it is fully utilized even though CPU and Mem may still be available.
         PerAlloc=PerAlloc+max(float(node['CPUAlloc'])/float(node['CPUTot']),min(float(node['AllocMem']),float(node['RealMemory']))/float(node['RealMemory']),float(agpu)/max(1,float(numgpu)))
 
+        #Power Counters
+        #The split of the power counters is based on whether a node has at GPU or not. This is power for the whole node CPU and GPU.
+        #As such we cannot split out specific CPU power and specific GPU power in the same way as we have above or below for TRES and FLOps
+        if numgpu == 0:
+          CurrentWattsCPU=CurrentWattsCPU+int(node['CurrentWatts'])
+          AveWattsCPU=AveWattsCPU+int(node['AveWatts'])
+        else
+          CurrentWattsGPU=CurrentWattsGPU+int(node['CurrentWatts'])
+          AveWattsGPU=AveWattsGPU+int(node['AveWatts'])
+
       #Calculate Total TRES and Total FLOps
       #This is Harvard specific for the weightings.  Update to match what you need.
-      tcputres=0.4*float(tcpu['haswell']+tcpu['broadwell'])+0.5*float(tcpu['skylake'])+0.5*float(tcpu['milan'])+0.8*float(tcpu['rome'])+1.0*float(tcpu['cascadelake'])+1.15*float(tcpu['icelake'])
+      tcputres=float(wcpu['haswell'])*float(tcpu['haswell'])+float(wcpu['broadwell'])*float(tcpu['broadwell'])+float(wcpu['skylake'])**float(tcpu['skylake'])+float(wcpu['milan'])**float(tcpu['milan'])+float(wcpu['rome'])**float(tcpu['rome'])+float(wcpu['cascadelake'])**float(tcpu['cascadelake'])+float(wcpu['icelake'])**float(tcpu['icelake'])
       tmemtres=tcputres
-      tgputres=2.2*float(tgpu['titanx'])+75.0*float(tgpu['v100']+tgpu['rtx2080ti'])+10.0*float(tgpu['a40'])+209.1*float(tgpu['a100'])+29.9*float(tgpu['a100-mig'])
-      ucputres=0.4*float(ucpu['haswell']+ucpu['broadwell'])+0.5*float(ucpu['skylake'])+0.5*float(ucpu['milan'])+0.8*float(ucpu['rome'])+1.0*float(ucpu['cascadelake'])+1.15*float(ucpu['icelake'])
-      umemtres=0.4*float(umem['haswell']+umem['broadwell'])+0.5*float(umem['skylake'])+0.5*float(umem['milan'])+0.8*float(umem['rome'])+1.0*float(umem['cascadelake'])+1.15*float(umem['icelake'])
-      ugputres=2.2*float(ugpu['titanx'])+75.0*float(ugpu['v100']+ugpu['rtx2080ti'])+10.0*float(ugpu['a40'])+209.1*float(ugpu['a100'])+29.9*float(ugpu['a100-mig'])
+      tgputres=float(wgpu['titanx'])*float(tgpu['titanx'])+float(wgpu['v100'])*float(tgpu['v100'])+float(wgpu['rtx2080ti'])*float(tgpu['rtx2080ti'])+float(wgpu['a40'])*float(tgpu['a40'])+float(wgpu['a100'])*float(tgpu['a100'])+float(wgpu['a100-mig'])*float(tgpu['a100-mig'])
+      ucputres=float(wcpu['haswell'])*float(ucpu['haswell'])+float(wcpu['broadwell'])*float(ucpu['broadwell'])+float(wcpu['skylake'])**float(ucpu['skylake'])+float(wcpu['milan'])**float(ucpu['milan'])+float(wcpu['rome'])**float(ucpu['rome'])+float(wcpu['cascadelake'])**float(ucpu['cascadelake'])+float(wcpu['icelake'])**float(ucpu['icelake'])
+      umemtres=float(wcpu['haswell'])*float(umem['haswell'])+float(wcpu['broadwell'])*float(umem['broadwell'])+float(wcpu['skylake'])**float(umem['skylake'])+float(wcpu['milan'])**float(umem['milan'])+float(wcpu['rome'])**float(umem['rome'])+float(wcpu['cascadelake'])**float(umem['cascadelake'])+float(wcpu['icelake'])**float(umem['icelake'])
+      ugputres=float(wgpu['titanx'])*float(ugpu['titanx'])+float(wgpu['v100'])*float(ugpu['v100'])+float(wgpu['rtx2080ti'])*float(ugpu['rtx2080ti'])+float(wgpu['a40'])*float(ugpu['a40'])+float(wgpu['a100'])*float(ugpu['a100'])+float(wgpu['a100-mig'])*float(ugpu['a100-mig'])
 
       ttres=tcputres+tmemtres+tgputres
       utres=ucputres+umemtres+ugputres
-      #Current translation from TRES to Double Precision GFLOps
-      t2g=93.25
 
       tcgflops=t2g*tcputres
       ucgflops=t2g*ucputres
@@ -198,6 +216,10 @@ class SlurmClusterStatusCollector(Collector):
 
       tgflops=tcgflops+tggflops
       ugflops=ucgflops+uggflops
+
+      #Total Power
+      tcw=CurrentWattsCPU+CurrentWattsGPU
+      taw=AveWattsCPU+CurrentWattsGPU
 
       #Ship it.
       lsload = GaugeMetricFamily('lsload', 'Aggregate Cluster Node Stats', labels=['field'])
@@ -243,6 +265,12 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["resgpu"],RESGPU)
       lsload.add_metric(["plannedgpu"],PLANNEDGPU)
       lsload.add_metric(["peralloc"],PerAlloc)
+      lsload.add_metric(["cwcpu"],CurrentWattsCPU)
+      lsload.add_metric(["awcpu"],AveWattsCPU)
+      lsload.add_metric(["cwgpu"],CurrentWattsCPU)
+      lsload.add_metric(["awgpu"],AveWattsCPU)
+      lsload.add_metric(["tcw"],tcw)
+      lsload.add_metric(["taw"],taw)
       lsload.add_metric(["tcpuhaswell"],tcpu['haswell'])
       lsload.add_metric(["tcpubroadwell"],tcpu['broadwell'])
       lsload.add_metric(["tcpuskylake"],tcpu['skylake'])
