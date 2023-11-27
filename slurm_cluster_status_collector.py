@@ -199,11 +199,11 @@ class SlurmClusterStatusCollector(Collector):
 
       #Calculate Total TRES and Total FLOps
       #This is Harvard specific for the weightings.  Update to match what you need.
-      tcputres=float(wcpu['haswell'])*float(tcpu['haswell'])+float(wcpu['broadwell'])*float(tcpu['broadwell'])+float(wcpu['skylake'])**float(tcpu['skylake'])+float(wcpu['milan'])**float(tcpu['milan'])+float(wcpu['rome'])**float(tcpu['rome'])+float(wcpu['cascadelake'])**float(tcpu['cascadelake'])+float(wcpu['icelake'])**float(tcpu['icelake'])
+      tcputres=float(wcpu['haswell'])*float(tcpu['haswell'])+float(wcpu['broadwell'])*float(tcpu['broadwell'])+float(wcpu['skylake'])*float(tcpu['skylake'])+float(wcpu['milan'])*float(tcpu['milan'])+float(wcpu['rome'])*float(tcpu['rome'])+float(wcpu['cascadelake'])*float(tcpu['cascadelake'])+float(wcpu['icelake'])*float(tcpu['icelake'])
       tmemtres=tcputres
       tgputres=float(wgpu['titanx'])*float(tgpu['titanx'])+float(wgpu['v100'])*float(tgpu['v100'])+float(wgpu['rtx2080ti'])*float(tgpu['rtx2080ti'])+float(wgpu['a40'])*float(tgpu['a40'])+float(wgpu['a100'])*float(tgpu['a100'])+float(wgpu['a100-mig'])*float(tgpu['a100-mig'])
-      ucputres=float(wcpu['haswell'])*float(ucpu['haswell'])+float(wcpu['broadwell'])*float(ucpu['broadwell'])+float(wcpu['skylake'])**float(ucpu['skylake'])+float(wcpu['milan'])**float(ucpu['milan'])+float(wcpu['rome'])**float(ucpu['rome'])+float(wcpu['cascadelake'])**float(ucpu['cascadelake'])+float(wcpu['icelake'])**float(ucpu['icelake'])
-      umemtres=float(wcpu['haswell'])*float(umem['haswell'])+float(wcpu['broadwell'])*float(umem['broadwell'])+float(wcpu['skylake'])**float(umem['skylake'])+float(wcpu['milan'])**float(umem['milan'])+float(wcpu['rome'])**float(umem['rome'])+float(wcpu['cascadelake'])**float(umem['cascadelake'])+float(wcpu['icelake'])**float(umem['icelake'])
+      ucputres=float(wcpu['haswell'])*float(ucpu['haswell'])+float(wcpu['broadwell'])*float(ucpu['broadwell'])+float(wcpu['skylake'])*float(ucpu['skylake'])+float(wcpu['milan'])*float(ucpu['milan'])+float(wcpu['rome'])*float(ucpu['rome'])+float(wcpu['cascadelake'])*float(ucpu['cascadelake'])+float(wcpu['icelake'])*float(ucpu['icelake'])
+      umemtres=float(wcpu['haswell'])*float(umem['haswell'])+float(wcpu['broadwell'])*float(umem['broadwell'])+float(wcpu['skylake'])*float(umem['skylake'])+float(wcpu['milan'])*float(umem['milan'])+float(wcpu['rome'])*float(umem['rome'])+float(wcpu['cascadelake'])*float(umem['cascadelake'])+float(wcpu['icelake'])*float(umem['icelake'])
       ugputres=float(wgpu['titanx'])*float(ugpu['titanx'])+float(wgpu['v100'])*float(ugpu['v100'])+float(wgpu['rtx2080ti'])*float(ugpu['rtx2080ti'])+float(wgpu['a40'])*float(ugpu['a40'])+float(wgpu['a100'])*float(ugpu['a100'])+float(wgpu['a100-mig'])*float(ugpu['a100-mig'])
 
       ttres=tcputres+tmemtres+tgputres
@@ -267,8 +267,8 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["peralloc"],PerAlloc)
       lsload.add_metric(["cwcpu"],CurrentWattsCPU)
       lsload.add_metric(["awcpu"],AveWattsCPU)
-      lsload.add_metric(["cwgpu"],CurrentWattsCPU)
-      lsload.add_metric(["awgpu"],AveWattsCPU)
+      lsload.add_metric(["cwgpu"],CurrentWattsGPU)
+      lsload.add_metric(["awgpu"],AveWattsGPU)
       lsload.add_metric(["tcw"],tcw)
       lsload.add_metric(["taw"],taw)
       lsload.add_metric(["tcpuhaswell"],tcpu['haswell'])
