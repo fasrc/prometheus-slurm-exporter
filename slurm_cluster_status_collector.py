@@ -92,7 +92,7 @@ class SlurmClusterStatusCollector(Collector):
       t2g=93.25
 
       #Current TRES weights
-      wcpu={'haswell': 0.4, 'broadwell': 0.4, 'skylake': 0.5, 'milan': 0.5, 'rome': 0.8, 'cascadelake': 1.0, 'icelake': 1.15}'
+      wcpu={'haswell': 0.4, 'broadwell': 0.4, 'skylake': 0.5, 'milan': 0.5, 'rome': 0.8, 'cascadelake': 1.0, 'icelake': 1.15}
       wgpu={'titanx': 2.2, 'rtx2080ti': 75.0, 'v100': 75.0, 'a40': 10.0, 'a100': 209.1, 'a100-mig': 29.9}
 
       #Cycle through each node
