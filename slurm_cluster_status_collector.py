@@ -123,11 +123,11 @@ class SlurmClusterStatusCollector(Collector):
             tcpu[f]=tcpu[f]+int(node['CPUTot'])
             ucpu[f]=ucpu[f]+int(node['CPUAlloc'])
             umem[f]=umem[f]+float(node['CPUTot'])*float(node['AllocMem'])/float(node['RealMemory'])
-            cflops=t2g*float(wcpu[f])*int(node['CPUTot'])
+            cflops=t2g*float(wcpu[f])*int(node['CPUAlloc'])
           if f in tgpu:
             tgpu[f]=tgpu[f]+numgpu
             ugpu[f]=ugpu[f]+agpu
-            gflops=t2g*float(wgpu[f])*numgpu
+            gflops=t2g*float(wgpu[f])*agpu
 
         #Counters.
         NodeTot=NodeTot+1
@@ -227,7 +227,7 @@ class SlurmClusterStatusCollector(Collector):
       tcw=CurrentWattsCPU+CurrentWattsGPU
       taw=AveWattsCPU+CurrentWattsGPU
 
-      #Flops Per Watt
+      #GFLOps Per Watt
       cfpcw=ncflops/max(float(CurrentWattsCPU),1)
       gfpcw=ngflops/max(float(CurrentWattsGPU),1)
       cfpaw=ncflops/max(float(AveWattsCPU),1)
