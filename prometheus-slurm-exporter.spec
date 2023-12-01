@@ -1,5 +1,5 @@
 Name:           prometheus-slurm-exporter
-Version:        1.01
+Version:        1.02
 Release:        1%{?dist}
 Summary:        Prometheus Exporter for Slurm
 
@@ -39,6 +39,8 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 
 
 %changelog
+* Fri Dec 1 2023 Paul Edmon <pedmon@cfa.harvard.edu>
+- Fixing bug.
 * Tue Nov 28 2023 Paul Edmon <pedmon@cfa.harvard.edu>
 - Added power monitoring.
 * Fri Oct 20 2023 Paul Edmon <pedmon@cfa.harvard.edu>
