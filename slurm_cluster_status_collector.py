@@ -225,7 +225,7 @@ class SlurmClusterStatusCollector(Collector):
 
       #Total Power
       tcw=CurrentWattsCPU+CurrentWattsGPU
-      taw=AveWattsCPU+CurrentWattsGPU
+      taw=AveWattsCPU+AveWattsGPU
 
       #GFLOps Per Watt
       cfpcw=ncflops/max(float(CurrentWattsCPU),1)
