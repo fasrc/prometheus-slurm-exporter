@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 """
-slurm_kempner_stats_collector.py
+
 A script to collect  statistics from Slurm.
 """
 
