@@ -29,7 +29,7 @@ class SlurmKempnerStatsCollector:
         """Collect Slurm job data."""
         command = [
             '/usr/bin/squeue',
-            '--account= kempner_alvarez_lab,kempner_ba_lab,kempner_barak_lab,kempner_bsabatini_lab,kempner_dam_lab,kempner_dev,kempner_devState,kempner_fellows,kempner_gershman_lab,kempner_grads,kempner_h100State,kempner_hms,kempner_kdbrantley_lab,kempner_konkle_lab,kempner_krajan_lab,kempner_lab,kempner_murphy_lab,kempner_mzitnik_lab,kempner_pehlevan_lab,kempner_pslade_lab,kempner_requeueState,kempner_sham_lab,kempner_sompolinsky_lab,kempnerState,kempner_undergrads,kempner_users'
+            '-A kempner_alvarez_lab,kempner_ba_lab,kempner_barak_lab,kempner_bsabatini_lab,kempner_dam_lab,kempner_dev,kempner_devState,kempner_fellows,kempner_gershman_lab,kempner_grads,kempner_h100State,kempner_hms,kempner_kdbrantley_lab,kempner_konkle_lab,kempner_krajan_lab,kempner_lab,kempner_murphy_lab,kempner_mzitnik_lab,kempner_pehlevan_lab,kempner_pslade_lab,kempner_requeueState,kempner_sham_lab,kempner_sompolinsky_lab,kempnerState,kempner_undergrads,kempner_users',
             '--Format=RestartCnt,PendingTime,Partition',
             '--noheader'
         ]
@@ -62,7 +62,7 @@ class SlurmKempnerStatsCollector:
         # Collect and process Slurm job data
         slurm_data = self.collect_slurm_data()
         rtot, ptot, jcnt, jkempner = self.process_slurm_data(slurm_data)
-
+       
         # Calculate averages and add metrics
         if jcnt > 0:
             self.kempner.add_metric(["restartave"], rtot / jcnt)
@@ -71,8 +71,10 @@ class SlurmKempnerStatsCollector:
         self.kempner.add_metric(["kempnerpartjobs"], jkempner)
 
         # Collect data for specific partitions using showq
-        partitions = ['kempner_compute', 'kempner_gpu']
-        for partition in partitions:
+        partitions_of_interest = [ 
+            'kempner',  'kempner_dev', 'kempner_h100', 'kempner_requeue'
+        ]
+        for partition in partitions_of_interest:
             showq_data = self.collect_showq_data(partition)
             self.process_showq_data(showq_data, partition)
 
@@ -83,13 +85,13 @@ class SlurmKempnerStatsCollector:
         for line in lines:
             if "cores" in line:
                 summary = self.extract_summary(line)
-                if partition == 'kempner_compute':
-                    self.add_compute_metrics(summary)
-                elif partition == 'kempner_gpu':
+                if "kempner" in partition:
                     self.add_gpu_metrics(summary)
+                else:
+                    self.add_compute_metrics(summary)
             elif "Idle" in line:
                 summary = self.extract_summary(line)
-                self.kempner.add_metric([f'{partition}_pj'], summary[8])
+                self.kempner.add_metric([f'{partition}'], summary[8])
 
     def extract_summary(self, line):
         """Extract and clean summary data from a line of showq output."""
@@ -98,22 +100,22 @@ class SlurmKempnerStatsCollector:
 
     def add_compute_metrics(self, summary):
         """Add metrics for compute partitions."""
-        self.kempner.add_metric(["sccu"], summary[4])
-        self.kempner.add_metric(["scct"], summary[6])
-        self.kempner.add_metric(["scnu"], summary[18])
-        self.kempner.add_metric(["scnt"], summary[20])
+        self.kempner.add_metric(["kccu"], summary[4])
+        self.kempner.add_metric(["kcct"], summary[6])
+        self.kempner.add_metric(["kcnu"], summary[18])
+        self.kempner.add_metric(["kcnt"], summary[20])
 
     def add_gpu_metrics(self, summary):
         """Add metrics for GPU partitions."""
-        self.kempner.add_metric(["sgcu"], summary[4])
-        self.kempner.add_metric(["sgct"], summary[6])
-        self.kempner.add_metric(["sggu"], summary[11])
-        self.kempner.add_metric(["sggt"], summary[13])
-        self.kempner.add_metric(["sgnu"], summary[18])
-        self.kempner.add_metric(["sgnt"], summary[20])
+        self.kempner.add_metric(["kgcu"], summary[4])
+        self.kempner.add_metric(["kgct"], summary[6])
+        self.kempner.add_metric(["kggu"], summary[11])
+        self.kempner.add_metric(["kggt"], summary[13])
+        self.kempner.add_metric(["kgnu"], summary[18])
+        self.kempner.add_metric(["kgnt"], summary[20])
 
 if __name__ == "__main__":
-    start_http_server(9004)
+    start_http_server(10002)
     REGISTRY.register(SlurmKempnerStatsCollector())
     while True:
         time.sleep(30)
