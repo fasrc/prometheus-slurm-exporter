@@ -74,10 +74,6 @@ class SlurmClusterStatusCollector:
                 self.metrics[f"{status}CPU"] += int(node['CPUTot'])
                 self.metrics[f"{status}Mem"] += int(node['RealMemory'])
                 self.metrics[f"{status}GPU"] += int(self.metrics['GPUTot'])
-#                self.metrics[f"{status.lower()}Tot"] += int(node['MIXEDTot'])
-#                self.metrics[f"{status.lower()}CPU"] += int(node['CPUTot'])
-#                self.metrics[f"{status.lower()}Mem"] += int(node['RealMemory'])
-#                self.metrics[f"{status.lower()}GPU"] += int(self.metrics['GPUTot'])
 
     def calculate_totals(self):
         """Calculate totals and FLOPs for CPU, GPU, and memory."""
