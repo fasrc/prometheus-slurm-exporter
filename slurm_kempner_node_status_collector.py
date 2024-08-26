@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 """
-slurm_cluster_status_collector.py
 A script to get general Slurm cluster statistics.
 """
 
@@ -15,6 +14,7 @@ class SlurmClusterStatusCollector:
     def __init__(self):
         self.metrics = self.initialize_metrics()
         self.t2g = 93.25  # Translation from TRES to GFLOPs
+        #Current TRES weights
         self.wcpu = {'genoa': 0.6, 'icelake': 1.15}
         self.wgpu = {'a100': 209.1, 'a100-mig': 29.9, 'h100': 546.9}
 
