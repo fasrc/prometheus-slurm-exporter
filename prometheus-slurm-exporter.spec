@@ -1,5 +1,5 @@
 Name:           prometheus-slurm-exporter
-Version:        1.06
+Version:        1.07
 Release:        1%{?dist}
 Summary:        Prometheus Exporter for Slurm
 
@@ -28,6 +28,8 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-sdiag.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-sdiag.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-sshare.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-sshare.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-seas.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-seas.service
+install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-kempner.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-kempner.service
+install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-klsload.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-klsload.service
 
 %files
 %defattr(-,root,root,-)
@@ -36,9 +38,12 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 %{_unitdir}/prometheus-slurm-exporter-sdiag.service
 %{_unitdir}/prometheus-slurm-exporter-sshare.service
 %{_unitdir}/prometheus-slurm-exporter-seas.service
-
+%{_unitdir}/prometheus-slurm-exporter-kempner.service
+%{_unitdir}/prometheus-slurm-exporter-klsload.service
 
 %changelog
+* Tue Aug 27 2024 Paul Edmon <pedmon@cfa.harvard.edu>
+- Adding kempner exporters.
 * Fri Dec 1 2023 Paul Edmon <pedmon@cfa.harvard.edu>
 - Fixing bug.
 * Tue Nov 28 2023 Paul Edmon <pedmon@cfa.harvard.edu>
