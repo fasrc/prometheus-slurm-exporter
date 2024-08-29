@@ -35,6 +35,7 @@ class SlurmClusterStatusCollector:
     def run_command(self, command):
         """Run a command and return its output."""
         try:
+            self.metrics = self.initialize_metrics()
             proc = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
             #for line in proc.stdout:
             #    print(line)
@@ -92,7 +93,7 @@ class SlurmClusterStatusCollector:
     def collect_metrics(self):
         """Collect all Slurm metrics."""
         for line in self.run_command(['scontrol', '-o', 'show', 'node']):
-            if "kempner" in line:
+            if "Partitions=kempner" in line:
                 node, cfgtres, alloctres = self.parse_node(line)
                 self.process_node_info(node, cfgtres, alloctres)
                 self.update_state_counters(node)
@@ -110,11 +111,11 @@ class SlurmClusterStatusCollector:
         self.collect_metrics()
         k_lsload = GaugeMetricFamily('k_lsload', 'Aggregate Cluster Node Stats', labels=['field'])
         for key, value in self.metrics.items():
-            k_lsload.add_metric([key], value)
+            k_lsload.add_metric([key.lower()], value)
         yield k_lsload
 
 if __name__ == "__main__":
-    start_http_server(10000)
+    start_http_server(8000)
     REGISTRY.register(SlurmClusterStatusCollector())
     while True:
         time.sleep(30)
