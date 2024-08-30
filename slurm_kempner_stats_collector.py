@@ -100,7 +100,6 @@ class SlurmKempnerStatsCollector:
     
     def add_gpusummary_metrics(self, partition, summary):
         """Add metrics for GPU partitions."""
-        print(partition)
         self.kempner.add_metric([f"{partition}-cpu-used"], summary[4]) # cpus used
         self.kempner.add_metric([f"{partition}-cpu-total"], summary[6]) # cpus total
         self.kempner.add_metric([f"{partition}-gpu-used"], summary[11])
@@ -111,13 +110,10 @@ class SlurmKempnerStatsCollector:
 
     def add_jobsummary_metrics(self, partition, summary):
         """Add metrics for GPU partitions."""
-        print(partition)
-        print(summary)
         self.kempner.add_metric([f"{partition}-job-total"], summary[2])
         self.kempner.add_metric([f"{partition}-job-active"], summary[5])
         self.kempner.add_metric([f"{partition}-job-idle"], summary[8])
         self.kempner.add_metric([f"{partition}-job-blocked"], summary[11])
-      
 
 
 if __name__ == "__main__":
