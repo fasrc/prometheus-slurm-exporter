@@ -1,125 +1,121 @@
 #!/usr/bin/python3
 
 """
-
-A script to collect  statistics from Slurm.
+A script to get general Slurm cluster statistics.
 """
 
 import subprocess
+import shlex
 import time
-import os
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_client import start_http_server
 
-
-class SlurmKempnerStatsCollector:
+class SlurmClusterStatusCollector:
     def __init__(self):
-        self.kempner = GaugeMetricFamily('kempner', 'Stats for Kempner', labels=['field'])
+        self.metrics = self.initialize_metrics()
+        self.t2g = 93.25  # Translation from TRES to GFLOPs
+        #Current TRES weights
+        self.wcpu = {'genoa': 0.6, 'icelake': 1.15}
+        self.wgpu = {'a100': 209.1, 'a100-mig': 29.9, 'h100': 546.9}
+
+    def initialize_metrics(self):
+        """Initialize all the metrics and counters."""
+        metrics = {
+"CPUTot":0, "CPULoad":0, "CPUAlloc":0, "RealMem":0, "MemAlloc":0, "MemLoad":0, "GPUTot":0, "GPUAlloc":0, "NodeTot":0, "IDLETot":0, "DOWNTot":0, "DRAINTot":0, "MIXEDTot":0, "ALLOCTot":0, "RESTot":0, "COMPTot":0, "PLANNEDTot":0, "IDLECPU":0, "MIXEDCPU":0, "ALLOCCPU":0, "COMPCPU":0, "RESCPU":0, "PLANNEDCPU":0, "DRAINCPU":0, "DOWNCPU":0, "IDLEMem":0, "MIXEDMem":0, "ALLOCMem":0, "COMPMem":0, "PLANNEDMem":0, "DRAINMem":0, "DOWNMem":0, "RESMem":0, "IDLEGPU":0, "MIXEDGPU":0, "ALLOCGPU":0, "COMPGPU":0, "DRAINGPU":0, "DOWNGPU":0, "RESGPU":0, "PLANNEDGPU":0, "PerAlloc":0 
+        }
+        cpu_gpu_types = ["genoa", "icelake", "a100", "a100-mig", "h100"]
+        for ctype in cpu_gpu_types:
+            metrics[f"tcpu_{ctype}"] = 0
+            metrics[f"ucpu_{ctype}"] = 0
+            metrics[f"tgpu_{ctype}"] = 0
+            metrics[f"ugpu_{ctype}"] = 0
+            metrics[f"umem_{ctype}"] = 0
+        return metrics
 
     def run_command(self, command):
-        """Run a shell command and return its output."""
+        """Run a command and return its output."""
         try:
+            self.metrics = self.initialize_metrics()
             proc = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
-            output, _ = proc.communicate()
-            return output.strip().splitlines()
+            #for line in proc.stdout:
+            #    print(line)
+            return proc.stdout
         except subprocess.SubprocessError as e:
-            print(f"Error executing command {command}: {e}")
+            print(f"Error running command {command}: {e}")
             return []
 
-    def collect_slurm_data(self):
-        """Collect Slurm job data."""
-        command = [
-            '/usr/bin/squeue',
-            '--account=kempner_alvarez_lab,kempner_ba_lab,kempner_barak_lab,kempner_bsabatini_lab,kempner_dam_lab,kempner_dev,kempner_devState,kempner_fellows,kempner_gershman_lab,kempner_grads,kempner_h100State,kempner_hms,kempner_kdbrantley_lab,kempner_konkle_lab,kempner_krajan_lab,kempner_lab,kempner_murphy_lab,kempner_mzitnik_lab,kempner_pehlevan_lab,kempner_pslade_lab,kempner_requeueState,kempner_sham_lab,kempner_sompolinsky_lab,kempnerState,kempner_undergrads,kempner_users',
-            '--Format=RestartCnt,PendingTime,Partition',
-            '--noheader'
-        ]
-        return self.run_command(command)
+    def process_node_info(self, node, cfgtres, alloctres):
+        """Update the metrics based on node, cfgTRES, and allocTRES."""
+        numgpu = int(cfgtres.get('gres/gpu', 0))
+        agpu = int(alloctres.get('gres/gpu', 0))
+        self.metrics['NodeTot'] += 1
+        self.metrics['CPUTot'] += int(node['CPUTot'])
+        self.metrics['CPUAlloc'] += int(node['CPUAlloc'])
+        self.metrics['RealMem'] += int(node['RealMemory'])
+        self.metrics['MemAlloc'] += min(int(node['AllocMem']), int(node['RealMemory']))
+        self.metrics['MemLoad'] += int(node['RealMemory']) - int(node['FreeMem']) if node['FreeMem'] != 'N/A' else 0
+        self.metrics['CPULoad'] += float(node['CPULoad']) if node['CPULoad'] != 'N/A' else 0
+        self.metrics['GPUTot'] += numgpu
+        self.metrics['GPUAlloc'] += agpu
+        for f in node['AvailableFeatures'].split(","):
+            if f in self.wcpu:
+                self.metrics[f"tcpu_{f}"] += int(node['CPUTot'])
+                self.metrics[f"ucpu_{f}"] += int(node['CPUAlloc'])
+                self.metrics[f"umem_{f}"] += int(node['CPUTot']) * int(node['AllocMem']) / int(node['RealMemory'])
+            if f in self.wgpu:
+                self.metrics[f"tgpu_{f}"] += numgpu
+                self.metrics[f"ugpu_{f}"] += agpu
 
-    def process_slurm_data(self, lines):
-        """Process the collected Slurm job data."""
-        rtot = ptot = jcnt = jkempner = 0
-        partitions_of_interest = [ 
-            'kempner',  'kempner_dev', 'kempner_h100', 'kempner_requeue'
-        ]
+    def update_state_counters(self, node):
+        """Update the counters based on the node's state."""
+        state = node['State']
+        for status in ["IDLE", "MIXED", "ALLOC", "RES", "COMP", "DRAIN", "DOWN"]:
+            if status in state:
+                self.metrics[f"{status}Tot"] += 1
+                self.metrics[f"{status}CPU"] += int(node['CPUTot'])
+                self.metrics[f"{status}Mem"] += int(node['RealMemory'])
+                self.metrics[f"{status}GPU"] += int(self.metrics['GPUTot'])
 
-        for line in lines:
-            RestartCnt, PendingTime, Partition = line.split()
-            rtot += int(RestartCnt)
-            ptot += int(PendingTime)
-            jcnt += 1
-            if Partition in partitions_of_interest:
-                jkempner += 1
+    def calculate_totals(self):
+        """Calculate totals and FLOPs for CPU, GPU, and memory."""
+        tcputres = sum(float(self.wcpu[ctype]) * float(self.metrics[f"tcpu_{ctype}"]) for ctype in self.wcpu)
+        tgputres = sum(float(self.wgpu[gtype]) * float(self.metrics[f"tgpu_{gtype}"]) for gtype in self.wgpu)
+        ucputres = sum(float(self.wcpu[ctype]) * float(self.metrics[f"ucpu_{ctype}"]) for ctype in self.wcpu)
+        ugputres = sum(float(self.wgpu[gtype]) * float(self.metrics[f"ugpu_{gtype}"]) for gtype in self.wgpu)
 
-        return rtot, ptot, jcnt, jkempner
+        self.metrics['tcputres'] = tcputres
+        self.metrics['tgputres'] = tgputres
+        self.metrics['ucputres'] = ucputres
+        self.metrics['ugputres'] = ugputres
+        self.metrics['tgflops'] = self.t2g * (tcputres + tgputres)
+        self.metrics['ugflops'] = self.t2g * (ucputres + ugputres)
+
+    def collect_metrics(self):
+        """Collect all Slurm metrics."""
+        for line in self.run_command(['scontrol', '-o', 'show', 'node']):
+            if "Partitions=kempner" in line:
+                node, cfgtres, alloctres = self.parse_node(line)
+                self.process_node_info(node, cfgtres, alloctres)
+                self.update_state_counters(node)
+        self.calculate_totals()
+
+    def parse_node(self, line):
+        """Parse a node line from scontrol output."""
+        node = dict(s.split("=", 1) for s in shlex.split(line) if '=' in s)
+        cfgtres = dict(s.split("=", 1) for s in shlex.split(node['CfgTRES'].replace(",", " ")) if '=' in s)
+        alloctres = dict(s.split("=", 1) for s in shlex.split(node['AllocTRES'].replace(",", " ")) if '=' in s)
+        return node, cfgtres, alloctres
 
     def collect(self):
-        """Collect metrics and yield them to Prometheus."""
-        # Collect and process Slurm job data
-        slurm_data = self.collect_slurm_data()
-        rtot, ptot, jcnt, jkempner = self.process_slurm_data(slurm_data)
-       
-        # Calculate averages and add metrics
-        if jcnt > 0:
-            self.kempner.add_metric(["restartave"], rtot / jcnt)
-            self.kempner.add_metric(["pendingave"], ptot / jcnt)
-        self.kempner.add_metric(["totkempnerjobs"], jcnt)
-        self.kempner.add_metric(["kempnerpartjobs"], jkempner)
-
-        # Collect data for specific partitions using showq
-        partitions_of_interest = [ 
-            'kempner',  'kempner_dev', 'kempner_h100', 'kempner_requeue'
-        ]
-        for partition in partitions_of_interest:
-            showq_data = self.collect_showq_data(partition)
-            #print('showq_data')
-            #print(showq_data)
-            self.process_showq_data(showq_data, partition)
-
-        yield self.kempner
-
-    def collect_showq_data(self, partition):
-        """Collect data from showq for a specific partition."""
-        command = ['/usr/local/bin/showq', '-s', '-p', partition]
-        return self.run_command(command)
-    
-    def process_showq_data(self, lines, partition):
-        """Process the collected showq data and add metrics."""
-        for line in lines:
-            summary = self.extract_summary(line)
-            if "cores" and "gpus" in line:
-                self.add_gpusummary_metrics(partition, summary)
-            if "Active" and "Idle" in line:
-                self.add_jobsummary_metrics(partition, summary)
-
-    def extract_summary(self, line):
-        """Extract and clean summary data from a line of showq output."""
-        line = line.replace("(", " ").replace(")", " ")
-        return line.split()
-    
-    
-    def add_gpusummary_metrics(self, partition, summary):
-        """Add metrics for GPU partitions."""
-        print(partition)
-        self.kempner.add_metric([f"{partition}-cpu-used"], summary[4]) # cpus used
-        self.kempner.add_metric([f"{partition}-cpu-total"], summary[6]) # cpus total
-        self.kempner.add_metric([f"{partition}-gpu-used"], summary[11])
-        self.kempner.add_metric([f"{partition}-gpu-total"], summary[13])
-        self.kempner.add_metric([f"{partition}-node-used"], summary[18])
-        self.kempner.add_metric([f"{partition}-node-total"], summary[20])
-    
-
-    def add_jobsummary_metrics(self, partition, summary):
-        """Add metrics for GPU partitions."""
-        print(partition)
-        print(summary)
-        self.kempner.add_metric([f"{partition}-job-total"], summary[2])
-        self.kempner.add_metric([f"{partition}-job-active"], summary[5])
-        self.kempner.add_metric([f"{partition}-job-idle"], summary[8])
-        self.kempner.add_metric([f"{partition}-job-blocked"], summary[11])
+        """Prometheus collector interface."""
+        self.collect_metrics()
+        k_lsload = GaugeMetricFamily('k_lsload', 'Aggregate Cluster Node Stats', labels=['field'])
+        for key, value in self.metrics.items():
+            k_lsload.add_metric([key.lower()], value)
+        yield k_lsload
 
 if __name__ == "__main__":
-    start_http_server(10002)
-    REGISTRY.register(SlurmKempnerStatsCollector())
+    start_http_server(8000)
+    REGISTRY.register(SlurmClusterStatusCollector())
     while True:
         time.sleep(30)
