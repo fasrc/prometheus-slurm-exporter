@@ -66,15 +66,20 @@ class SlurmClusterStatusCollector:
                 self.metrics[f"tgpu_{f}"] += numgpu
                 self.metrics[f"ugpu_{f}"] += agpu
 
-    def update_state_counters(self, node):
+    def update_state_counters(self, node, cfgtres, alloctres):
         """Update the counters based on the node's state."""
         state = node['State']
-        for status in ["IDLE", "MIXED", "ALLOC", "RES", "COMP", "DRAIN", "DOWN"]:
+        for status in ["IDLE", "MIXED", "ALLOC", "RESE", "COMP", "DRAIN", "DOWN"]:
             if status in state:
                 self.metrics[f"{status}Tot"] += 1
                 self.metrics[f"{status}CPU"] += int(node['CPUTot'])
                 self.metrics[f"{status}Mem"] += int(node['RealMemory'])
-                self.metrics[f"{status}GPU"] += int(self.metrics['GPUTot'])
+                if status in ["IDLE", "RES", "DRAIN", "DOWN"]:
+                    gpu_count = int(cfgtres.get('gres/gpu', 0))
+                if status in ["MIXED", "ALLOC",  "COMP"]:
+                    gpu_count = int(alloctres.get('gres/gpu', 0))
+                self.metrics[f"{status}GPU"] += gpu_count
+               
 
     def calculate_totals(self):
         """Calculate totals and FLOPs for CPU, GPU, and memory."""
@@ -96,7 +101,7 @@ class SlurmClusterStatusCollector:
             if "Partitions=kempner" in line:
                 node, cfgtres, alloctres = self.parse_node(line)
                 self.process_node_info(node, cfgtres, alloctres)
-                self.update_state_counters(node)
+                self.update_state_counters(node, cfgtres, alloctres)
         self.calculate_totals()
 
     def parse_node(self, line):
