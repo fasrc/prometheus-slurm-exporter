@@ -37,15 +37,10 @@ class SlurmKempnerStatsCollector:
         """Collect Slurm job data."""
         command = [
             '/usr/bin/squeue',
-            '-A kempner_alvarez_lab,kempner_ba_lab,kempner_barak_lab,kempner_bsabatini_lab,kempner_dam_lab,kempner_dev,kempner_devState,kempner_fellows,kempner_gershman_lab,kempner_grads,kempner_h100State,kempner_hms,kempner_kdbrantley_lab,kempner_konkle_lab,kempner_krajan_lab,kempner_lab,kempner_murphy_lab,kempner_mzitnik_lab,kempner_pehlevan_lab,kempner_pslade_lab,kempner_requeueState,kempner_sham_lab,kempner_sompolinsky_lab,kempnerState,kempner_undergrads,kempner_users',
+            '--account=kempner_alvarez_lab,kempner_ba_lab,kempner_barak_lab,kempner_bsabatini_lab,kempner_dam_lab,kempner_dev,kempner_devState,kempner_fellows,kempner_gershman_lab,kempner_grads,kempner_h100State,kempner_hms,kempner_kdbrantley_lab,kempner_konkle_lab,kempner_krajan_lab,kempner_lab,kempner_murphy_lab,kempner_mzitnik_lab,kempner_pehlevan_lab,kempner_pslade_lab,kempner_requeueState,kempner_sham_lab,kempner_sompolinsky_lab,kempnerState,kempner_undergrads,kempner_users',
             '--Format=RestartCnt,PendingTime,Partition',
             '--noheader'
         ]
-        return self.run_command(command)
-
-    def collect_showq_data(self, partition):
-        """Collect data from showq for a specific partition."""
-        command = ['/usr/local/bin/showq', '-s', '-p', partition]
         return self.run_command(command)
 
     def process_slurm_data(self, lines):
@@ -84,43 +79,46 @@ class SlurmKempnerStatsCollector:
         ]
         for partition in partitions_of_interest:
             showq_data = self.collect_showq_data(partition)
+            #print('showq_data')
+            #print(showq_data)
             self.process_showq_data(showq_data, partition)
 
         yield self.kempner
 
+    def collect_showq_data(self, partition):
+        """Collect data from showq for a specific partition."""
+        command = ['/usr/local/bin/showq', '-s', '-p', partition]
+        return self.run_command(command)
+    
     def process_showq_data(self, lines, partition):
         """Process the collected showq data and add metrics."""
         for line in lines:
-            if "cores" in line:
-                summary = self.extract_summary(line)
-                if "kempner" in partition:
-                    self.add_gpu_metrics(summary)
-                else:
-                    self.add_compute_metrics(summary)
-            elif "Idle" in line:
-                summary = self.extract_summary(line)
-                self.kempner.add_metric([f'{partition}'], summary[8])
+            summary = self.extract_summary(line)
+            if "cores" and "gpus" in line:
+                self.add_gpusummary_metrics(partition, summary)
+            if "Active" and "Idle" in line:
+                self.add_jobsummary_metrics(partition, summary)
 
     def extract_summary(self, line):
         """Extract and clean summary data from a line of showq output."""
         line = line.replace("(", " ").replace(")", " ")
         return line.split()
-
-    def add_compute_metrics(self, summary):
-        """Add metrics for compute partitions."""
-        self.kempner.add_metric(["kccu"], summary[4])
-        self.kempner.add_metric(["kcct"], summary[6])
-        self.kempner.add_metric(["kcnu"], summary[18])
-        self.kempner.add_metric(["kcnt"], summary[20])
-
-    def add_gpu_metrics(self, summary):
+    
+    def add_gpusummary_metrics(self, partition, summary):
         """Add metrics for GPU partitions."""
-        self.kempner.add_metric(["kgcu"], summary[4])
-        self.kempner.add_metric(["kgct"], summary[6])
-        self.kempner.add_metric(["kggu"], summary[11])
-        self.kempner.add_metric(["kggt"], summary[13])
-        self.kempner.add_metric(["kgnu"], summary[18])
-        self.kempner.add_metric(["kgnt"], summary[20])
+        self.kempner.add_metric([f"p_{partition}-cu"], summary[4]) # cpus used
+        self.kempner.add_metric([f"p_{partition}-ct"], summary[6]) # cpus total
+        self.kempner.add_metric([f"p_{partition}-gu"], summary[11])
+        self.kempner.add_metric([f"p_{partition}-gt"], summary[13])
+        self.kempner.add_metric([f"p_{partition}-nu"], summary[18])
+        self.kempner.add_metric([f"p_{partition}-nt"], summary[20])
+    
+    def add_jobsummary_metrics(self, partition, summary):
+        """Add metrics for GPU partitions."""
+        self.kempner.add_metric([f"p_{partition}-jt"], summary[2])
+        self.kempner.add_metric([f"p_{partition}-ja"], summary[5])
+        self.kempner.add_metric([f"p_{partition}-ji"], summary[8])
+        self.kempner.add_metric([f"p_{partition}-jb"], summary[11])
 
 if __name__ == "__main__":
     start_http_server(9006)
