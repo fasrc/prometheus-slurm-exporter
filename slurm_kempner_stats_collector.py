@@ -21,7 +21,8 @@ from prometheus_client import start_http_server
 
 class SlurmKempnerStatsCollector:
     def __init__(self):
-        self.kempner = GaugeMetricFamily('kempner', 'Stats for Kempner', labels=['field'])
+        self.part_kemp = [ 'kempner',  'kempner_dev', 'kempner_h100', 'kempner_requeue' ]
+        self.metric = {}
 
     def run_command(self, command):
         """Run a shell command and return its output."""
@@ -33,59 +34,24 @@ class SlurmKempnerStatsCollector:
             print(f"Error executing command {command}: {e}")
             return []
 
-    def collect_slurm_data(self):
-        """Collect Slurm job data."""
-        command = [
-            '/usr/bin/squeue',
-            '--account=kempner_alvarez_lab,kempner_ba_lab,kempner_barak_lab,kempner_bsabatini_lab,kempner_dam_lab,kempner_dev,kempner_devState,kempner_fellows,kempner_gershman_lab,kempner_grads,kempner_h100State,kempner_hms,kempner_kdbrantley_lab,kempner_konkle_lab,kempner_krajan_lab,kempner_lab,kempner_murphy_lab,kempner_mzitnik_lab,kempner_pehlevan_lab,kempner_pslade_lab,kempner_requeueState,kempner_sham_lab,kempner_sompolinsky_lab,kempnerState,kempner_undergrads,kempner_users',
-            '--Format=RestartCnt,PendingTime,Partition',
-            '--noheader'
-        ]
-        return self.run_command(command)
-
-    def process_slurm_data(self, lines):
-        """Process the collected Slurm job data."""
-        rtot = ptot = jcnt = jkempner = 0
-        partitions_of_interest = [ 
-            'kempner',  'kempner_dev', 'kempner_h100', 'kempner_requeue'
-        ]
-
-        for line in lines:
-            RestartCnt, PendingTime, Partition = line.split()
-            rtot += int(RestartCnt)
-            ptot += int(PendingTime)
-            jcnt += 1
-            if Partition in partitions_of_interest:
-                jkempner += 1
-
-        return rtot, ptot, jcnt, jkempner
 
     def collect(self):
         """Collect metrics and yield them to Prometheus."""
-        # Collect and process Slurm job data
-        slurm_data = self.collect_slurm_data()
-        rtot, ptot, jcnt, jkempner = self.process_slurm_data(slurm_data)
+        k_partition = GaugeMetricFamily('k_partition', 'Stats for Kempner Partitions', labels=['field'])
        
-        # Calculate averages and add metrics
-        if jcnt > 0:
-            self.kempner.add_metric(["restartave"], rtot / jcnt)
-            self.kempner.add_metric(["pendingave"], ptot / jcnt)
-        self.kempner.add_metric(["totkempnerjobs"], jcnt)
-        self.kempner.add_metric(["kempnerpartjobs"], jkempner)
+        for part in self.part_kemp:
+            showq_data = self.get_showq_data(part)
+            self.process_showq_data(showq_data, part)
+        for key, value in self.metric.items():
+            k_partition.add_metric([key.lower()], value)
+        jobt = 0
+        for part in self.part_kemp:
+            jobt  +=  int(self.metric[f"{part}-jt"])
+   
+        k_partition.add_metric(["job_total"], jobt)
+        yield k_partition
 
-        # Collect data for specific partitions using showq
-        partitions_of_interest = [ 
-            'kempner',  'kempner_dev', 'kempner_h100', 'kempner_requeue'
-        ]
-        for partition in partitions_of_interest:
-            showq_data = self.collect_showq_data(partition)
-            #print('showq_data')
-            #print(showq_data)
-            self.process_showq_data(showq_data, partition)
-
-        yield self.kempner
-
-    def collect_showq_data(self, partition):
+    def get_showq_data(self, partition):
         """Collect data from showq for a specific partition."""
         command = ['/usr/local/bin/showq', '-s', '-p', partition]
         return self.run_command(command)
@@ -99,26 +65,29 @@ class SlurmKempnerStatsCollector:
             if "Active" and "Idle" in line:
                 self.add_jobsummary_metrics(partition, summary)
 
+
     def extract_summary(self, line):
         """Extract and clean summary data from a line of showq output."""
         line = line.replace("(", " ").replace(")", " ")
         return line.split()
     
+    
     def add_gpusummary_metrics(self, partition, summary):
         """Add metrics for GPU partitions."""
-        self.kempner.add_metric([f"p_{partition}-cu"], summary[4]) # cpus used
-        self.kempner.add_metric([f"p_{partition}-ct"], summary[6]) # cpus total
-        self.kempner.add_metric([f"p_{partition}-gu"], summary[11])
-        self.kempner.add_metric([f"p_{partition}-gt"], summary[13])
-        self.kempner.add_metric([f"p_{partition}-nu"], summary[18])
-        self.kempner.add_metric([f"p_{partition}-nt"], summary[20])
+        self.metric[f"{partition}-cu"]= summary[4] # cpus used
+        self.metric[f"{partition}-ct"]= summary[6] # cpus total
+        self.metric[f"{partition}-gu"]= summary[11]
+        self.metric[f"{partition}-gt"]= summary[13]
+        self.metric[f"{partition}-nu"]= summary[18]
+        self.metric[f"{partition}-nt"]= summary[20]
     
+
     def add_jobsummary_metrics(self, partition, summary):
         """Add metrics for GPU partitions."""
-        self.kempner.add_metric([f"p_{partition}-jt"], summary[2])
-        self.kempner.add_metric([f"p_{partition}-ja"], summary[5])
-        self.kempner.add_metric([f"p_{partition}-ji"], summary[8])
-        self.kempner.add_metric([f"p_{partition}-jb"], summary[11])
+        self.metric[f"{partition}-jt"]= summary[2]
+        self.metric[f"{partition}-ja"]= summary[5]
+        self.metric[f"{partition}-ji"]= summary[8]
+        self.metric[f"{partition}-jb"]= summary[11]
 
 if __name__ == "__main__":
     start_http_server(9006)
