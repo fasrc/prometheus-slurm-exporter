@@ -78,7 +78,7 @@ class SlurmClusterStatusCollector:
     def update_state_counters(self, node, cfgtres, alloctres):
         """Update the counters based on the node's state."""
         state = node['State']
-        for status in ["IDLE", "MIXED", "ALLOC", "RESE", "COMP", "DRAIN", "DOWN"]:
+        for status in ["IDLE", "MIXED", "ALLOC", "RES", "COMP", "DRAIN", "DOWN"]:
             if status in state:
                 self.metrics[f"{status}Tot"] += 1
                 self.metrics[f"{status}CPU"] += int(node['CPUTot'])
@@ -88,7 +88,6 @@ class SlurmClusterStatusCollector:
                 if status in ["MIXED", "ALLOC",  "COMP"]:
                     gpu_count = int(alloctres.get('gres/gpu', 0))
                 self.metrics[f"{status}GPU"] += gpu_count
-               
 
     def calculate_totals(self):
         """Calculate totals and FLOPs for CPU, GPU, and memory."""
