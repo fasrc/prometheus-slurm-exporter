@@ -58,11 +58,11 @@ def update_dictionary(data_dict, name, t_time, g_time, g_tr_time):
 def get_node_names():
     try:
         command = "sinfo -p kempner_requeue -N 1 | grep kempner | awk '{print $1}'"
-        result = subprocess.check_output(command, shell=True, text=True)
+        result = subprocess.check_output(command, shell=True, universal_newlines=True)
         node_names = result.strip().split('\n')
         return node_names
     except subprocess.CalledProcessError as e:
-        print(f"Error occurred while running the command: {e}")
+        #print(f"Error occurred while running the command: {e}")
         return []
 
 def check_kempner_node(n_name, n_list, p_key):
@@ -176,7 +176,6 @@ def run_command(s_date, e_date):
     :param s_date: Start date for the command.
     :param e_date: End date for the command.
     """
-    print("running the sacct command")
     command = [
         "sacct",
         "-S", s_date,
@@ -187,10 +186,9 @@ def run_command(s_date, e_date):
         "-p",
         "--format=JobID,State,user%-24,Account%-24,partition%-24,Elapsed,AllocTRES%-160,NodeList%-160,ReqMem,MaxRSS,ExitCode,NCPUs,TotalCPU,CPUTime,ReqTRES,start,end%-120"
     ]
-    #print(command)
     # Run the command and redirect output to today_sacct.data
     with open("/tmp/kempner_sacct_collect_tmp_files/today_sacct.data", "w") as output_file:
-        subprocess.run(command, stdout=output_file, text=True)
+        subprocess.run(command, stdout=output_file, universal_newlines=True)
 
 
 def find_missing_dates(file_path):
