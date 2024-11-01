@@ -206,7 +206,6 @@ def find_missing_dates(file_path):
     for line in lines:
         parts = line.strip().split(',')
         entry_date = datetime.strptime(parts[0], date_format).date()
-        print(entry_date)
         entry_dates.add(entry_date)
 
     # Find the oldest entry date in the file
@@ -235,7 +234,6 @@ def getdata_current_or_missing_dates():
         for start_date, end_date in missing_dates:
             s_date = str(start_date)
             e_date = str(end_date)
-            print(s_date, e_date)
             run_command(s_date, e_date)
             process_gpu_usage("/tmp/kempner_sacct_collect_tmp_files/today_sacct.data")
             file_pairs = [
