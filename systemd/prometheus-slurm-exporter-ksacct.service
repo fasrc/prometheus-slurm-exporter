@@ -1,0 +1,10 @@
+[Unit]
+Description=Prometheus SLURM Exporter for Kempner sacct Stats
+
+[Service]
+ExecStart=/opt/prometheus-slurm-exporter/slurm_kempner_sacct_collector.py
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
