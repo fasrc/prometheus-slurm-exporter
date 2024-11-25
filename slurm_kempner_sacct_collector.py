@@ -9,13 +9,16 @@ import subprocess
 from typing import List, Tuple, Dict
 from datetime import datetime, timedelta
 from os import path
-from prometheus_client.core import GaugeMetricFamily, REGISTRY
-from prometheus_client import start_http_server
+
 
 # Constants
 PREFIX = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__))))
 EXTERNAL = os.path.join(PREFIX, 'external')
 sys.path = [PREFIX, EXTERNAL] + sys.path
+
+from prometheus_client.core import GaugeMetricFamily, REGISTRY
+from prometheus_client import start_http_server
+
 WGPU = {'a100': 209.1, 'h100': 546.9}
 
 # Utility Functions
