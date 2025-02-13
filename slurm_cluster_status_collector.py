@@ -93,6 +93,9 @@ class SlurmClusterStatusCollector(Collector):
 
       #Cycle through each node
       for line in proc.stdout:
+        #Sanitize input
+        line = line.replace("'", "\\'")
+
         #Turn node information into a hash
         node = dict(s.split("=", 1) for s in shlex.split(line) if '=' in s)
 

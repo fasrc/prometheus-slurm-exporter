@@ -114,6 +114,9 @@ class SlurmClusterStatusCollector:
 
     def parse_node(self, line):
         """Parse a node line from scontrol output."""
+        #Sanitize input
+        line = line.replace("'", "\\'")
+
         node = dict(s.split("=", 1) for s in shlex.split(line) if '=' in s)
         cfgtres = dict(s.split("=", 1) for s in shlex.split(node['CfgTRES'].replace(",", " ")) if '=' in s)
         alloctres = dict(s.split("=", 1) for s in shlex.split(node['AllocTRES'].replace(",", " ")) if '=' in s)
