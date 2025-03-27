@@ -12,7 +12,7 @@ from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_client.registry import Collector
 from prometheus_client import start_http_server
 
-class SlurmClusterStatusCollector(Collector):
+class SlurmPartStatusCollector(Collector):
   def __init__(self):
     pass
   def collect(self):
@@ -359,3 +359,10 @@ class SlurmClusterStatusCollector(Collector):
               phcpu[p] = phcpu[p] + npcpu[n][sp]
               phmem[p] = phmem[p] + npmem[n][sp]
               phgpu[p] = phgpu[p] + npgpu[n][sp]
+
+if __name__ == "__main__":
+  start_http_server(9008)
+  REGISTRY.register(SlurmPartStatusCollector())
+  while True: 
+    # period between collection
+    time.sleep(45)
