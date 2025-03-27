@@ -1,5 +1,10 @@
 #!/usr/bin/python3.11
 
+"""
+slurm_partition_status_collector.py
+A script that gets slurm partition statistics.
+"""
+
 import sys,os,subprocess,shlex
 
 prefix = os.path.normpath(
@@ -359,6 +364,13 @@ class SlurmPartStatusCollector(Collector):
               phcpu[p] = phcpu[p] + npcpu[n][sp]
               phmem[p] = phmem[p] + npmem[n][sp]
               phgpu[p] = phgpu[p] + npgpu[n][sp]
+
+    #Export data
+    spart = GaugeMetricFamily('spart', 'Partition stats', labels=['partition','user','account','field'])    
+    for p in pcpu:
+      sshare.add_metric([p,'','','pcpu'],pcpu[p])
+      
+    yield spart
 
 if __name__ == "__main__":
   start_http_server(9008)
