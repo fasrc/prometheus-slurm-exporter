@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 """
-slurm_sshare_diamond.py
-A script that uses PySlurm to get the slurm sshare statistics.
+slurm_sshare_collector.py
+A script that gets slurm sshare statistics.
 """
 
 import sys,os,json,subprocess
