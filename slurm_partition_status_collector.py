@@ -367,7 +367,11 @@ class SlurmPartStatusCollector(Collector):
               phgpu[p] = phgpu[p] + npgpu[n][sp]
 
     #Export data
-    spart = GaugeMetricFamily('spart', 'Partition stats', labels=['partition','user','account','field'])    
+    spart = GaugeMetricFamily('spart', 'Partition stats', labels=['partition','user','account','field'])
+
+    #Current translation from TRES to Double Precision GFLOps
+    t2g=93.25
+   
     for p in pcpu:
       #General partition stats
       spart.add_metric([p,'','','cpu'],pcpu[p])
@@ -395,6 +399,38 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','pendcnt'],ppendcnt[p])
       spart.add_metric([p,'','','runcnt'],pruncnt[p])
       spart.add_metric([p,'','','restarts'],prestarts[p])
+
+      #TRES and FLOPS calculation
+      trescpu = ptresweightcpu[p]*float(pcpu[p])
+      tresmem = ptresweightmem[p]*pmem[p]
+      tresgpu = ptresweightgpu[p]*float(pgpu[p])
+      trestot = trescpu+tresmem+tresgpu
+      tresruncpu = ptresweightcpu[p]*float(pruncpu[p])
+      tresrunmem = ptresweightmem[p]*prunmem[p]
+      tresrungpu = ptresweightgpu[p]*float(prungpu[p])
+      tresruntot = tresruncpu+tresrunmem+tresrungpu
+
+      flopscpu = t2g*trescpu
+      flopsgpu = t2g*tresgpu
+      flopstot = flopscpu+flopsgpu
+      flopsruncpu = t2g*tresruncpu
+      flopsrungpu = t2g*tresrungpu
+      flopsruntot = flopsruncpu+flopsrungpu
+
+      spart.add_metric([p,'','','trescpu'],trescpu)
+      spart.add_metric([p,'','','tresmem'],tresmem)
+      spart.add_metric([p,'','','tresgpu'],tresgpu)
+      spart.add_metric([p,'','','trestot'],trestot)
+      spart.add_metric([p,'','','tresruncpu'],tresruncpu)
+      spart.add_metric([p,'','','tresrunmem'],tresrunmem)
+      spart.add_metric([p,'','','tresrungpu'],tresrungpu)
+      spart.add_metric([p,'','','tresruntot'],tresruntot)
+      spart.add_metric([p,'','','flopscpu'],flopscpu)
+      spart.add_metric([p,'','','flopsgpu'],flopsgpu)
+      spart.add_metric([p,'','','flopstot'],flopstot)
+      spart.add_metric([p,'','','flopsruncpu'],flopsruncpu)
+      spart.add_metric([p,'','','flopsrungpu'],flopsrungpu)
+      spart.add_metric([p,'','','flopsruntot'],flopsruntot)
 
     yield spart
 
