@@ -433,14 +433,23 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','flopsruntot'],flopsruntot)
 
       #Per User Data
-      for u in ppenduser[p]:
-        spart.add_metric([p,u,'','penduser'],ppenduser[p][u])
+      try:
+        for u in ppenduser[p]:
+          spart.add_metric([p,u,'','penduser'],ppenduser[p][u])
+      except:
+        spart.add_metric([p,'root(0)','','penduser'],0)
 
-      for u in prunuser[p]:
-        spart.add_metric([p,u,'','runuser'],prunuser[p][u])
-        spart.add_metric([p,u,'','cpuuser'],pcpuuser[p][u])
-        spart.add_metric([p,u,'','memuser'],pmemuser[p][u])
-        spart.add_metric([p,u,'','gpuuser'],pgpuuser[p][u])
+      try:
+        for u in prunuser[p]:
+          spart.add_metric([p,u,'','runuser'],prunuser[p][u])
+          spart.add_metric([p,u,'','cpuuser'],pcpuuser[p][u])
+          spart.add_metric([p,u,'','memuser'],pmemuser[p][u])
+          spart.add_metric([p,u,'','gpuuser'],pgpuuser[p][u])
+      except:
+        spart.add_metric([p,'root(0)','','runuser'],0)
+        spart.add_metric([p,'root(0)','','cpuuser'],0)
+        spart.add_metric([p,'root(0)','','memuser'],0)
+        spart.add_metric([p,'root(0)','','gpuuser'],0)
 
     yield spart
 
