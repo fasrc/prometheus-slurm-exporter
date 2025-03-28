@@ -21,9 +21,25 @@ This collector grabs the current [sshare](http://slurm.schedmd.com/sshare.html "
 
 This collector pulls the current [state](http://slurm.schedmd.com/scontrol.html "scontrol") of all the nodes in the cluster and then computes overall stats of the cluster such as number of nodes down, number of nodes in use, etc.
 
+### SlurmPartitionStatusCollection
+
+This collector reconstructs current partition state using several slurm commands to give a comprehensive summary of partition usage, allowing visibility into partition evolution over time.
+
 ### SlurmSeasStatsCollector
 
 This collector pulls stats for Harvard SEAS.
+
+### SlurmKempnerStatsCollector
+
+This collector pulls stats for the Kempner Institute.
+
+### SlurmKempnerSacctCollector
+
+This collector pulls stats for the Kempner Institute
+
+### SlurmKempnerNodeStatusCollector
+
+This collector pulls stats for the Kempner Institute.
 
 ## Usage
 

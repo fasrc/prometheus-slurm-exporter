@@ -1,5 +1,5 @@
 Name:           prometheus-slurm-exporter
-Version:        1.14
+Version:        1.15
 Release:        1%{?dist}
 Summary:        Prometheus Exporter for Slurm
 
@@ -27,6 +27,7 @@ rsync -av %{_topdir}/BUILD/prometheus-slurm-exporter/ %{buildroot}/opt/prometheu
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-lsload.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-lsload.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-sdiag.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-sdiag.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-sshare.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-sshare.service
+install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-spart.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-spart.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-seas.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-seas.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-kempner.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-kempner.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-klsload.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-klsload.service
@@ -38,12 +39,15 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 %{_unitdir}/prometheus-slurm-exporter-lsload.service
 %{_unitdir}/prometheus-slurm-exporter-sdiag.service
 %{_unitdir}/prometheus-slurm-exporter-sshare.service
+%{_unitdir}/prometheus-slurm-exporter-spart.service
 %{_unitdir}/prometheus-slurm-exporter-seas.service
 %{_unitdir}/prometheus-slurm-exporter-kempner.service
 %{_unitdir}/prometheus-slurm-exporter-klsload.service
 %{_unitdir}/prometheus-slurm-exporter-ksacct.service
 
 %changelog
+* Fri Mar 28 2024 Paul Edmon <pedmon@cfa.harvard.edu>
+- Adding spart exporter
 * Mon Nov 4 2024 Paul Edmon <pedmon@cfa.harvard.edu>
 - Adding Kempner sacct exporter
 * Tue Aug 27 2024 Paul Edmon <pedmon@cfa.harvard.edu>
