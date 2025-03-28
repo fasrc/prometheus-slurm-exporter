@@ -8,7 +8,6 @@ A script to get stats for SEAS.
 import sys,os,json,subprocess,shlex
 import time
 from os import path
-import yaml
 
 prefix = os.path.normpath(
   os.path.join(os.path.abspath(os.path.dirname(__file__)))
