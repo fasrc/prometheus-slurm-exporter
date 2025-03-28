@@ -369,7 +369,32 @@ class SlurmPartStatusCollector(Collector):
     #Export data
     spart = GaugeMetricFamily('spart', 'Partition stats', labels=['partition','user','account','field'])    
     for p in pcpu:
+      #General partition stats
       spart.add_metric([p,'','','cpu'],pcpu[p])
+      spart.add_metric([p,'','','mem'],pmem[p])
+      spart.add_metric([p,'','','gpu'],pgpu[p])
+      spart.add_metric([p,'','','node'],pnode[p])
+      spart.add_metric([p,'','','rescpu'],prescpu[p])
+      spart.add_metric([p,'','','resmem'],presmem[p])
+      spart.add_metric([p,'','','resgpu'],presgpu[p])
+      spart.add_metric([p,'','','resnode'],presnode[p])
+      spart.add_metric([p,'','','downcpu'],pdowncpu[p])
+      spart.add_metric([p,'','','downmem'],pdownmem[p])
+      spart.add_metric([p,'','','downgpu'],pdowngpu[p])
+      spart.add_metric([p,'','','downnode'],pdownnode[p])
+      spart.add_metric([p,'','','runcpu'],pruncpu[p])
+      spart.add_metric([p,'','','runmem'],prunmem[p])
+      spart.add_metric([p,'','','rungpu'],prungpu[p])
+      spart.add_metric([p,'','','occ'],pocc[p])
+      spart.add_metric([p,'','','hcpu'],phcpu[p])
+      spart.add_metric([p,'','','hmem'],phmem[p])
+      spart.add_metric([p,'','','hgpu'],phgpu[p])
+      spart.add_metric([p,'','','lcpu'],plcpu[p])
+      spart.add_metric([p,'','','lmem'],plmem[p])
+      spart.add_metric([p,'','','lgpu'],plgpu[p])
+      spart.add_metric([p,'','','pendcnt'],ppendcnt[p])
+      spart.add_metric([p,'','','runcnt'],pruncnt[p])
+      spart.add_metric([p,'','','restarts'],prestarts[p])
 
     yield spart
 
