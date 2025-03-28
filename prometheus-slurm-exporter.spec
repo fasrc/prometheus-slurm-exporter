@@ -46,7 +46,7 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 %{_unitdir}/prometheus-slurm-exporter-ksacct.service
 
 %changelog
-* Fri Mar 28 2024 Paul Edmon <pedmon@cfa.harvard.edu>
+* Fri Mar 28 2025 Paul Edmon <pedmon@cfa.harvard.edu>
 - Adding spart exporter
 * Mon Nov 4 2024 Paul Edmon <pedmon@cfa.harvard.edu>
 - Adding Kempner sacct exporter
