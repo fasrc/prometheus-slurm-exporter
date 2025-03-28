@@ -432,6 +432,16 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','flopsrungpu'],flopsrungpu)
       spart.add_metric([p,'','','flopsruntot'],flopsruntot)
 
+      #Per User Data
+      for u in ppenduser[p]:
+        spart.add_metric([p,u,'','penduser'],ppenduser[p][u])
+
+      for u in prunuser[p]:
+        spart.add_metric([p,u,'','runuser'],prunuser[p][u])
+        spart.add_metric([p,u,'','cpuuser'],pcpuuser[p][u])
+        spart.add_metric([p,u,'','memuser'],pmemuser[p][u])
+        spart.add_metric([p,u,'','gpuuser'],pgpuuser[p][u])
+
     yield spart
 
 if __name__ == "__main__":
