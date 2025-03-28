@@ -368,7 +368,7 @@ class SlurmPartStatusCollector(Collector):
     #Export data
     spart = GaugeMetricFamily('spart', 'Partition stats', labels=['partition','user','account','field'])    
     for p in pcpu:
-      sshare.add_metric([p,'','','cpu'],pcpu[p])
+      spart.add_metric([p,'','','cpu'],pcpu[p])
 
     yield spart
 
