@@ -451,6 +451,25 @@ class SlurmPartStatusCollector(Collector):
         spart.add_metric([p,'root(0)','','memuser'],0)
         spart.add_metric([p,'root(0)','','gpuuser'],0)
 
+      #Per Account Data
+      try:
+        for a in ppendacct[p]:
+          spart.add_metric([p,'',a,'pendacct'],ppendacct[p][a])
+      except:
+        spart.add_metric([p,'','root','pendacct'],0)
+
+      try:
+        for a in prunacct[p]:
+          spart.add_metric([p,'',a,'runacct'],prunacct[p][a])
+          spart.add_metric([p,'',a,'cpuacct'],pcpuacct[p][a])
+          spart.add_metric([p,'',a,'memacct'],pmemacct[p][a])
+          spart.add_metric([p,'',a,'gpuacct'],pgpuacct[p][a])
+      except:
+        spart.add_metric([p,'','root','runacct'],0)
+        spart.add_metric([p,'','root','cpuacct'],0)
+        spart.add_metric([p,'','root','memacct'],0)
+        spart.add_metric([p,'','root','gpuacct'],0)
+
     yield spart
 
 if __name__ == "__main__":
