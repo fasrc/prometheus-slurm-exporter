@@ -6,6 +6,7 @@ A script that gets slurm partition statistics.
 """
 
 import sys,os,subprocess,shlex
+import time
 
 prefix = os.path.normpath(
   os.path.join(os.path.abspath(os.path.dirname(__file__)))
