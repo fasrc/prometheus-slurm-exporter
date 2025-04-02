@@ -204,7 +204,12 @@ class SlurmPartStatusCollector(Collector):
         job = dict(s.split("=", 1) for s in shlex.split(line) if '=' in s)
 
         #Get user and account info
-        user = job["UserId"]
+        #If the data is empty then there are no jobs to count.
+        try:
+          user = job["UserId"]
+        except:
+          break
+          
         acct = job["Account"]
 
         #Get the partitions for a job
