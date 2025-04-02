@@ -445,11 +445,19 @@ class SlurmPartStatusCollector(Collector):
           spart.add_metric([p,u,'','cpuuser'],pcpuuser[p][u])
           spart.add_metric([p,u,'','memuser'],pmemuser[p][u])
           spart.add_metric([p,u,'','gpuuser'],pgpuuser[p][u])
+
+          tresruncpu = ptresweightcpu[p]*float(pcpuuser[p][u])
+          tresrunmem = ptresweightmem[p]*pmemuser[p][u]
+          tresrungpu = ptresweightgpu[p]*float(pgpuuser[p][u])
+          tresruntot = tresruncpu+tresrunmem+tresrungpu
+
+          spart.add_metric([p,u,'','tresuser'],tresruntot)
       except:
         spart.add_metric([p,'root(0)','','runuser'],0)
         spart.add_metric([p,'root(0)','','cpuuser'],0)
         spart.add_metric([p,'root(0)','','memuser'],0)
         spart.add_metric([p,'root(0)','','gpuuser'],0)
+        spart.add_metric([p,'root(0)','','tresuser'],0)
 
       #Per Account Data
       try:
@@ -464,11 +472,19 @@ class SlurmPartStatusCollector(Collector):
           spart.add_metric([p,'',a,'cpuacct'],pcpuacct[p][a])
           spart.add_metric([p,'',a,'memacct'],pmemacct[p][a])
           spart.add_metric([p,'',a,'gpuacct'],pgpuacct[p][a])
+
+          tresruncpu = ptresweightcpu[p]*float(pcpuacct[p][a])
+          tresrunmem = ptresweightmem[p]*pmemacct[p][a]
+          tresrungpu = ptresweightgpu[p]*float(pgpuacct[p][a])
+          tresruntot = tresruncpu+tresrunmem+tresrungpu
+
+          spart.add_metric([p,'',a,'tresacct'],tresruntot)
       except:
         spart.add_metric([p,'','root','runacct'],0)
         spart.add_metric([p,'','root','cpuacct'],0)
         spart.add_metric([p,'','root','memacct'],0)
         spart.add_metric([p,'','root','gpuacct'],0)
+        spart.add_metric([p,'','root','tresacct'],0)
 
     yield spart
 
