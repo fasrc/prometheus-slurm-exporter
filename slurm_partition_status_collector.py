@@ -215,19 +215,6 @@ class SlurmPartStatusCollector(Collector):
         #Get the partitions for a job
         jobpart = job["Partition"].split(',')
 
-        #Get overall stats for job
-        reqtres = dict(s.split("=", 1) for s in shlex.split(job['ReqTRES'].replace(",", " ")) if '=' in s)
-        cpu = int(reqtres["cpu"])
-        if "G" in reqtres["mem"]:
-          mem = float(reqtres["mem"].strip("G"))
-        elif "M" in reqtres["mem"]:
-          mem = float(reqtres["mem"].strip("M"))/1024
-
-        if 'gres/gpu' in reqtres:
-          gpu = int(reqtres['gres/gpu'])
-        else:
-          gpu = 0
-
         #Count how many job restarts per partition
         if "CronJob" not in job:
           for part in jobpart:
@@ -257,6 +244,19 @@ class SlurmPartStatusCollector(Collector):
         if "RUNNING" in job["JobState"]:
           #Strictly speaking there should only be one partition per job but to make this easy we will just have a meaningless for loop
           for part in jobpart:
+            #Get overall stats for job
+            alloctres = dict(s.split("=", 1) for s in shlex.split(job['AllocTRES'].replace(",", " ")) if '=' in s)
+            cpu = int(alloctres["cpu"])
+            if "G" in alloctres["mem"]:
+              mem = float(alloctres["mem"].strip("G"))
+            elif "M" in alloctres["mem"]:
+              mem = float(alloctres["mem"].strip("M"))/1024
+
+            if 'gres/gpu' in alloctres:
+              gpu = int(alloctres['gres/gpu'])
+            else:
+              gpu = 0
+
             #logging cpu, memory, and gpu per partition
             pruncpu[part] = pruncpu[part] + cpu
             prunmem[part] = prunmem[part] + mem
