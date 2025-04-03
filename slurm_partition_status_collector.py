@@ -209,7 +209,7 @@ class SlurmPartStatusCollector(Collector):
           user = job["UserId"]
         except:
           break
-          
+
         acct = job["Account"]
 
         #Get the partitions for a job
@@ -222,23 +222,40 @@ class SlurmPartStatusCollector(Collector):
 
         #Count how many pending jobs per partition, user, and account
         if "PENDING" in job["JobState"]:
+
+          #Count array elements as jobs
+          if "ArrayTaskId" in job:
+            taskid = job["ArrayTaskId"].split(',')
+
+            jobcnt = 0
+
+            for t in taskid:
+              t = t.split('%',1)[0]
+              if "-" in t:
+                ts = t.split('-')
+                jobcnt = int(ts[1])-int(ts[0]) + 1 + jobcnt
+              else:
+                jobcnt = jobcnt + 1
+          else:
+            jobcnt = 1
+
           for part in jobpart:
-            ppendcnt[part] = ppendcnt[part]+1
+            ppendcnt[part] = ppendcnt[part]+jobcnt
             try:
               try:
-                ppenduser[part][user] = ppenduser[part][user]+1
+                ppenduser[part][user] = ppenduser[part][user]+jobcnt
               except:
-                ppenduser[part][user] = 1
+                ppenduser[part][user] = jobcnt
             except:
-              ppenduser[part]={user: 1}
+              ppenduser[part]={user: jobcnt}
 
             try:
               try:
-                ppendacct[part][acct] = ppendacct[part][acct]+1
+                ppendacct[part][acct] = ppendacct[part][acct]+jobcnt
               except:
-                ppendacct[part][acct] = 1
+                ppendacct[part][acct] = jobcnt
             except:
-              ppendacct[part]={acct: 1}
+              ppendacct[part]={acct: jobcnt}
 
         #Grab stats on Running jobs
         if "RUNNING" in job["JobState"]:
