@@ -412,6 +412,7 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','runmem'],prunmem[p])
       spart.add_metric([p,'','','rungpu'],prungpu[p])
       spart.add_metric([p,'','','occ'],pocc[p])
+      spart.add_metric([p,'','','perocc'],pocc[p]/max(float(pnode[p]),1.0))
       spart.add_metric([p,'','','hcpu'],phcpu[p])
       spart.add_metric([p,'','','hmem'],phmem[p])
       spart.add_metric([p,'','','hgpu'],phgpu[p])
