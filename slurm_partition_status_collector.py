@@ -420,6 +420,8 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','downmem'],pdownmem[p])
       spart.add_metric([p,'','','downgpu'],pdowngpu[p])
       spart.add_metric([p,'','','downnode'],pdownnode[p])
+      spart.add_metric([p,'','','perdown'],float(pdownnode[p])/max(float(pnode[p]),1.0))
+      spart.add_metric([p,'','','perres'],float(presnode[p])/max(float(pnode[p]),1.0))
       spart.add_metric([p,'','','runcpu'],pruncpu[p])
       spart.add_metric([p,'','','runmem'],prunmem[p])
       spart.add_metric([p,'','','rungpu'],prungpu[p])
