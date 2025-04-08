@@ -254,6 +254,7 @@ class SlurmPartStatusCollector(Collector):
                 ppenduser[part][user] = ppenduser[part][user]+jobcnt
               except:
                 ppenduser[part][user] = jobcnt
+                ppendusercnt[part]=ppendusercnt[part]+1
             except:
               ppenduser[part]={user: jobcnt}
               ppendusercnt[part]=ppendusercnt[part]+1
@@ -263,6 +264,7 @@ class SlurmPartStatusCollector(Collector):
                 ppendacct[part][acct] = ppendacct[part][acct]+jobcnt
               except:
                 ppendacct[part][acct] = jobcnt
+                ppendacctcnt[part]=ppendacctcnt[part]+1
             except:
               ppendacct[part]={acct: jobcnt}
               ppendacctcnt[part]=ppendacctcnt[part]+1
@@ -302,6 +304,7 @@ class SlurmPartStatusCollector(Collector):
                 pcpuuser[part][user] = cpu
                 pmemuser[part][user] = mem
                 pgpuuser[part][user] = gpu
+                prunusercnt[part]=prunusercnt[part]+1
             except:
               prunuser[part]={user: 1}
               pcpuuser[part]={user: cpu}
@@ -320,6 +323,7 @@ class SlurmPartStatusCollector(Collector):
                 pcpuacct[part][acct] = cpu
                 pmemacct[part][acct] = mem
                 pgpuacct[part][acct] = gpu
+                prunacctcnt[part]=prunacctcnt[part]+1
             except:
               prunacct[part]={acct: 1}
               pcpuacct[part]={acct: cpu}
