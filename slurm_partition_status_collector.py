@@ -43,9 +43,13 @@ class SlurmPartStatusCollector(Collector):
     prunmem={}
     prungpu={}
     pruncnt={}
+    prunusercnt={}
+    prunacctcnt={}
     ppenduser={}
     ppendacct={}
     ppendcnt={}
+    ppendusercnt={}
+    ppendacctcnt={}
     prunuser={}
     prunacct={}
     pcpuuser={}
@@ -111,10 +115,14 @@ class SlurmPartStatusCollector(Collector):
         pdownmem[partition["PartitionName"]] = 0.0
         pdowngpu[partition["PartitionName"]] = 0
         ppendcnt[partition["PartitionName"]] = 0
+        ppendusercnt[partition["PartitionName"]] = 0
+        ppendacctcnt[partition["PartitionName"]] = 0
         pruncpu[partition["PartitionName"]] = 0
         prunmem[partition["PartitionName"]] = 0.0
         prungpu[partition["PartitionName"]] = 0
         pruncnt[partition["PartitionName"]] = 0
+        prunusercnt[partition["PartitionName"]] = 0
+        prunacctcnt[partition["PartitionName"]] = 0
         prestarts[partition["PartitionName"]] = 0
         pocc[partition["PartitionName"]] = 0.0
         phcpu[partition["PartitionName"]] = 0
@@ -248,6 +256,7 @@ class SlurmPartStatusCollector(Collector):
                 ppenduser[part][user] = jobcnt
             except:
               ppenduser[part]={user: jobcnt}
+              ppendusercnt[part]=ppendusercnt[part]+1
 
             try:
               try:
@@ -256,6 +265,7 @@ class SlurmPartStatusCollector(Collector):
                 ppendacct[part][acct] = jobcnt
             except:
               ppendacct[part]={acct: jobcnt}
+              ppendacctcnt[part]=ppendacctcnt[part]+1
 
         #Grab stats on Running jobs
         if "RUNNING" in job["JobState"]:
@@ -297,6 +307,7 @@ class SlurmPartStatusCollector(Collector):
               pcpuuser[part]={user: cpu}
               pmemuser[part]={user: mem}
               pgpuuser[part]={user: gpu}
+              prunusercnt[part]=prunusercnt[part]+1
 
             try:
               try:
@@ -314,6 +325,7 @@ class SlurmPartStatusCollector(Collector):
               pcpuacct[part]={acct: cpu}
               pmemacct[part]={acct: mem}
               pgpuacct[part]={acct: gpu}
+              prunacctcnt[part]=prunacctcnt[part]+1
 
             #Grabbing node specific information
             #First we need to reparse the scontrol data
@@ -419,7 +431,11 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','lmem'],plmem[p])
       spart.add_metric([p,'','','lgpu'],plgpu[p])
       spart.add_metric([p,'','','pendcnt'],ppendcnt[p])
+      spart.add_metric([p,'','','pendusercnt'],ppendusercnt[p])
+      spart.add_metric([p,'','','pendacctcnt'],ppendacctcnt[p])
       spart.add_metric([p,'','','runcnt'],pruncnt[p])
+      spart.add_metric([p,'','','runusercnt'],prunusercnt[p])
+      spart.add_metric([p,'','','runacctcnt'],prunacctcnt[p])
       spart.add_metric([p,'','','restarts'],prestarts[p])
 
       #TRES and FLOPS calculation
