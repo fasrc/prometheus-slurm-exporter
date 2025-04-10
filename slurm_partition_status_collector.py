@@ -39,6 +39,10 @@ class SlurmPartStatusCollector(Collector):
     pdowncpu={}
     pdownmem={}
     pdowngpu={}
+    ppwdnode={}
+    ppwdcpu={}
+    ppwdmem={}
+    ppwdgpu={}
     pruncpu={}
     prunmem={}
     prungpu={}
