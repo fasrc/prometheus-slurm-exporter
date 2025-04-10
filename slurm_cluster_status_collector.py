@@ -144,7 +144,7 @@ class SlurmClusterStatusCollector(Collector):
         GPUTot=GPUTot+numgpu
         GPUAlloc=GPUAlloc+agpu
 
-        state = node['State'].strip('+CLOUD').strip('+NOT_RESPONDING').strip('+POWERING_UP').strip('+POWERING_DOWN')
+        state = node['State'].replace('+CLOUD','').replace('+NOT_RESPONDING','').replace('+POWERING_UP','').replace('+POWERING_DOWN','')
 
         #Count how many nodes are in each state
         if state == 'IDLE' or state == 'IDLE+COMPLETING' or state == 'IDLE+POWER' or state == 'IDLE#':
