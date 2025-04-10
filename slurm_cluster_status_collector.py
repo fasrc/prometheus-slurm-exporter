@@ -187,7 +187,7 @@ class SlurmClusterStatusCollector(Collector):
           DOWNCPU=DOWNCPU+int(node['CPUTot'])
           DOWNMem=DOWNMem+int(node['RealMemory'])
           DOWNGPU=DOWNGPU+numgpu
-        if state == 'IDLE+POWERED_DOWN'':
+        if state == 'IDLE+POWERED_DOWN':
           PWDTot=PWDTot+1
           PWDCPU=PWDCPU+int(node['CPUTot'])
           PWDMem=PWDMem+int(node['RealMemory'])
