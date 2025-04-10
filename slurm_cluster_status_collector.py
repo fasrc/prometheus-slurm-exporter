@@ -182,7 +182,7 @@ class SlurmClusterStatusCollector(Collector):
           DRAINCPU=DRAINCPU+int(node['CPUTot'])
           DRAINMem=DRAINMem+int(node['RealMemory'])
           DRAINGPU=DRAINGPU+numgpu
-        if state == 'DOWN' or state == 'DOWN+POWERED_DOWN' or state == 'DOWN+DRAIN' or state = 'DOWN+DRAIN+POWERED_DOWN' or state == 'IDLE+DRAIN' or state == 'IDLE+DRAIN+POWERED_DOWN':
+        if state == 'DOWN' or state == 'DOWN+POWERED_DOWN' or state == 'DOWN+DRAIN' or state == 'DOWN+DRAIN+POWERED_DOWN' or state == 'IDLE+DRAIN' or state == 'IDLE+DRAIN+POWERED_DOWN':
           DOWNTot=DOWNTot+1
           DOWNCPU=DOWNCPU+int(node['CPUTot'])
           DOWNMem=DOWNMem+int(node['RealMemory'])
