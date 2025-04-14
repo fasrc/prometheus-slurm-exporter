@@ -83,8 +83,8 @@ class SlurmClusterStatusCollector(Collector):
       
       tcpu={'skylake': 0, 'milan': 0, 'genoa': 0, 'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
       ucpu={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
-      tgpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0}
-      ugpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0}
+      tgpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
+      ugpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
       umem={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
 
       #Current translation from TRES to Double Precision GFLOps
@@ -92,7 +92,7 @@ class SlurmClusterStatusCollector(Collector):
 
       #Current TRES weights
       wcpu={'skylake': 0.5, 'milan': 0.5, 'genoa': 0.6, 'sapphirerapids': 0.6, 'cascadelake': 1.0, 'icelake': 1.15}
-      wgpu={'v100': 75.0, 'a40': 10.0, 'a100': 209.1, 'a100-mig': 29.9, 'h100': 546.9}
+      wgpu={'v100': 75.0, 'a40': 10.0, 'a100': 209.1, 'a100-mig': 29.9, 'h100': 546.9, 'h200': 546.9}
 
       #Cycle through each node
       for line in proc.stdout:
@@ -202,10 +202,10 @@ class SlurmClusterStatusCollector(Collector):
       #This is Harvard specific for the weightings.  Update to match what you need.
       tcputres=float(wcpu['skylake'])*float(tcpu['skylake'])+float(wcpu['milan'])*float(tcpu['milan'])+float(wcpu['genoa'])*float(tcpu['genoa'])+float(wcpu['sapphirerapids'])*float(tcpu['sapphirerapids'])+float(wcpu['cascadelake'])*float(tcpu['cascadelake'])+float(wcpu['icelake'])*float(tcpu['icelake'])
       tmemtres=tcputres
-      tgputres=float(wgpu['v100'])*float(tgpu['v100'])+float(wgpu['a40'])*float(tgpu['a40'])+float(wgpu['a100'])*float(tgpu['a100'])+float(wgpu['a100-mig'])*float(tgpu['a100-mig'])+float(wgpu['h100'])*float(tgpu['h100'])
+      tgputres=float(wgpu['v100'])*float(tgpu['v100'])+float(wgpu['a40'])*float(tgpu['a40'])+float(wgpu['a100'])*float(tgpu['a100'])+float(wgpu['a100-mig'])*float(tgpu['a100-mig'])+float(wgpu['h100'])*float(tgpu['h100'])+float(wgpu['h200'])*float(tgpu['h200'])
       ucputres=float(wcpu['skylake'])*float(ucpu['skylake'])+float(wcpu['milan'])*float(ucpu['milan'])+float(wcpu['genoa'])*float(ucpu['genoa'])+float(wcpu['sapphirerapids'])*float(ucpu['sapphirerapids'])+float(wcpu['cascadelake'])*float(ucpu['cascadelake'])+float(wcpu['icelake'])*float(ucpu['icelake'])
       umemtres=float(wcpu['skylake'])*float(umem['skylake'])+float(wcpu['milan'])*float(umem['milan'])+float(wcpu['genoa'])*float(umem['genoa'])+float(wcpu['sapphirerapids'])*float(umem['sapphirerapids'])+float(wcpu['cascadelake'])*float(umem['cascadelake'])+float(wcpu['icelake'])*float(umem['icelake'])
-      ugputres=float(wgpu['v100'])*float(ugpu['v100'])+float(wgpu['a40'])*float(ugpu['a40'])+float(wgpu['a100'])*float(ugpu['a100'])+float(wgpu['a100-mig'])*float(ugpu['a100-mig'])+float(wgpu['h100'])*float(ugpu['h100'])
+      ugputres=float(wgpu['v100'])*float(ugpu['v100'])+float(wgpu['a40'])*float(ugpu['a40'])+float(wgpu['a100'])*float(ugpu['a100'])+float(wgpu['a100-mig'])*float(ugpu['a100-mig'])+float(wgpu['h100'])*float(ugpu['h100'])+float(wgpu['h200'])*float(ugpu['h200'])
 
       ttres=tcputres+tmemtres+tgputres
       utres=ucputres+umemtres+ugputres
@@ -277,6 +277,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["tgpua100"],tgpu['a100'])
       lsload.add_metric(["tgpua100mig"],tgpu['a100-mig'])
       lsload.add_metric(["tgpuh100"],tgpu['h100'])
+      lsload.add_metric(["tgpuh200"],tgpu['h200'])
       lsload.add_metric(["ucpuskylake"],ucpu['skylake'])
       lsload.add_metric(["ucpumilan"],ucpu['milan'])
       lsload.add_metric(["ucpugenoa"],ucpu['genoa'])
@@ -288,6 +289,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["ugpua100"],ugpu['a100'])
       lsload.add_metric(["ugpua100mig"],ugpu['a100-mig'])
       lsload.add_metric(["ugpuh100"],ugpu['h100'])
+      lsload.add_metric(["ugpuh200"],ugpu['h200'])
       lsload.add_metric(["umemskylake"],umem['skylake'])
       lsload.add_metric(["umemmilan"],umem['milan'])
       lsload.add_metric(["umemgenoa"],umem['genoa'])
