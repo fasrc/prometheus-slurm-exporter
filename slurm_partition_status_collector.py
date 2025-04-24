@@ -268,6 +268,7 @@ class SlurmPartStatusCollector(Collector):
 
             for t in taskid:
               t = t.split('%',1)[0]
+              t = t.split(':',1)[0]
               if "-" in t:
                 ts = t.split('-')
                 jobcnt = int(ts[1])-int(ts[0]) + 1 + jobcnt
