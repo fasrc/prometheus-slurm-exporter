@@ -45,6 +45,7 @@ class SlurmClusterStatusCollector(Collector):
       NodeTot=0
       IDLETot=0
       DOWNTot=0
+      PWDTot=0
       DRAINTot=0
       MIXEDTot=0
       ALLOCTot=0
@@ -59,6 +60,7 @@ class SlurmClusterStatusCollector(Collector):
       PLANNEDCPU=0
       DRAINCPU=0
       DOWNCPU=0
+      PWDCPU=0
       IDLEMem=0
       MIXEDMem=0
       ALLOCMem=0
@@ -66,6 +68,7 @@ class SlurmClusterStatusCollector(Collector):
       PLANNEDMem=0
       DRAINMem=0
       DOWNMem=0
+      PWDMem=0
       RESMem=0
       IDLEGPU=0
       MIXEDGPU=0
@@ -73,14 +76,15 @@ class SlurmClusterStatusCollector(Collector):
       COMPGPU=0
       DRAINGPU=0
       DOWNGPU=0
+      PWDGPU=0
       RESGPU=0
       PLANNEDGPU=0
       PerAlloc=0
       
       tcpu={'skylake': 0, 'milan': 0, 'genoa': 0, 'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
       ucpu={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
-      tgpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0}
-      ugpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0}
+      tgpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
+      ugpu={'v100': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
       umem={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
 
       #Current translation from TRES to Double Precision GFLOps
@@ -88,7 +92,7 @@ class SlurmClusterStatusCollector(Collector):
 
       #Current TRES weights
       wcpu={'skylake': 0.5, 'milan': 0.5, 'genoa': 0.6, 'sapphirerapids': 0.6, 'cascadelake': 1.0, 'icelake': 1.15}
-      wgpu={'v100': 75.0, 'a40': 10.0, 'a100': 209.1, 'a100-mig': 29.9, 'h100': 546.9}
+      wgpu={'v100': 75.0, 'a40': 10.0, 'a100': 209.1, 'a100-mig': 29.9, 'h100': 546.9, 'h200': 546.9}
 
       #Cycle through each node
       for line in proc.stdout:
@@ -140,47 +144,54 @@ class SlurmClusterStatusCollector(Collector):
         GPUTot=GPUTot+numgpu
         GPUAlloc=GPUAlloc+agpu
 
+        state = node['State'].replace('+CLOUD','').replace('+NOT_RESPONDING','').replace('+POWERING_UP','').replace('+POWERING_DOWN','')
+
         #Count how many nodes are in each state
-        if node['State'] == 'IDLE' or node['State'] == 'IDLE+COMPLETING' or node['State'] == 'IDLE+POWER' or node['State'] == 'IDLE#':
+        if state == 'IDLE' or state == 'IDLE+COMPLETING' or state == 'IDLE+POWER' or state == 'IDLE#':
           IDLETot=IDLETot+1
           IDLECPU=IDLECPU+int(node['CPUTot'])
           IDLEMem=IDLEMem+int(node['RealMemory'])
           IDLEGPU=IDLEGPU+numgpu
-        if node['State'] == 'MIXED' or node['State'] == 'MIXED+COMPLETING' or node['State'] == 'MIXED#':
+        if state == 'MIXED' or state == 'MIXED+COMPLETING' or state == 'MIXED#':
           MIXEDTot=MIXEDTot+1
           MIXEDCPU=MIXEDCPU+int(node['CPUTot'])
           MIXEDMem=MIXEDMem+int(node['RealMemory'])
           MIXEDGPU=MIXEDGPU+numgpu
-        if node['State'] == 'ALLOCATED' or node['State'] == 'ALLOCATED+COMPLETING':
+        if state == 'ALLOCATED' or state == 'ALLOCATED+COMPLETING':
           ALLOCTot=ALLOCTot+1
           ALLOCCPU=ALLOCCPU+int(node['CPUTot'])
           ALLOCMem=ALLOCMem+int(node['RealMemory'])
           ALLOCGPU=ALLOCGPU+numgpu
-        if node['State'] == 'IDLE+PLANNED' or node['State'] == 'MIXED+PLANNED':
+        if state == 'IDLE+PLANNED' or state == 'MIXED+PLANNED':
           PLANNEDTot=PLANNEDTot+1
           PLANNEDCPU=PLANNEDCPU+int(node['CPUTot'])
           PLANNEDMem=PLANNEDMem+int(node['RealMemory'])
           PLANNEDGPU=PLANNEDGPU+numgpu
-        if "RESERVED" in node['State']:
+        if "RESERVED" in state:
           RESTot=RESTot+1
           RESCPU=RESCPU+int(node['CPUTot'])
           RESMem=RESMem+int(node['RealMemory'])
           RESGPU=RESGPU+numgpu
-        if "COMPLETING" in node['State']:
+        if "COMPLETING" in state:
           COMPTot=COMPTot+1
           COMPCPU=COMPCPU+int(node['CPUTot'])
           COMPMem=COMPMem+int(node['RealMemory'])
           COMPGPU=COMPGPU+numgpu
-        if "DRAIN" in node['State'] and node['State'] != 'IDLE+DRAIN' and node['State'] != 'DOWN+DRAIN':
+        if "DRAIN" in state and state != 'IDLE+DRAIN' and state != 'DOWN+DRAIN' and state != 'DOWN+DRAIN+POWERED_DOWN':
           DRAINTot=DRAINTot+1
           DRAINCPU=DRAINCPU+int(node['CPUTot'])
           DRAINMem=DRAINMem+int(node['RealMemory'])
           DRAINGPU=DRAINGPU+numgpu
-        if "DOWN" in node['State'] or node['State'] == 'IDLE+DRAIN':
+        if state == 'DOWN' or state == 'DOWN+POWERED_DOWN' or state == 'DOWN+DRAIN' or state == 'DOWN+DRAIN+POWERED_DOWN' or state == 'IDLE+DRAIN' or state == 'IDLE+DRAIN+POWERED_DOWN':
           DOWNTot=DOWNTot+1
           DOWNCPU=DOWNCPU+int(node['CPUTot'])
           DOWNMem=DOWNMem+int(node['RealMemory'])
           DOWNGPU=DOWNGPU+numgpu
+        if state == 'IDLE+POWERED_DOWN':
+          PWDTot=PWDTot+1
+          PWDCPU=PWDCPU+int(node['CPUTot'])
+          PWDMem=PWDMem+int(node['RealMemory'])
+          PWDGPU=PWDGPU+numgpu
 
         #Calculate percent occupation of all nodes.  Some nodes may have few cores used but all their memory allocated.
         #Thus the node is fully used even though it is not labelled Alloc.  This metric is an attempt to count this properly.
@@ -191,10 +202,10 @@ class SlurmClusterStatusCollector(Collector):
       #This is Harvard specific for the weightings.  Update to match what you need.
       tcputres=float(wcpu['skylake'])*float(tcpu['skylake'])+float(wcpu['milan'])*float(tcpu['milan'])+float(wcpu['genoa'])*float(tcpu['genoa'])+float(wcpu['sapphirerapids'])*float(tcpu['sapphirerapids'])+float(wcpu['cascadelake'])*float(tcpu['cascadelake'])+float(wcpu['icelake'])*float(tcpu['icelake'])
       tmemtres=tcputres
-      tgputres=float(wgpu['v100'])*float(tgpu['v100'])+float(wgpu['a40'])*float(tgpu['a40'])+float(wgpu['a100'])*float(tgpu['a100'])+float(wgpu['a100-mig'])*float(tgpu['a100-mig'])+float(wgpu['h100'])*float(tgpu['h100'])
+      tgputres=float(wgpu['v100'])*float(tgpu['v100'])+float(wgpu['a40'])*float(tgpu['a40'])+float(wgpu['a100'])*float(tgpu['a100'])+float(wgpu['a100-mig'])*float(tgpu['a100-mig'])+float(wgpu['h100'])*float(tgpu['h100'])+float(wgpu['h200'])*float(tgpu['h200'])
       ucputres=float(wcpu['skylake'])*float(ucpu['skylake'])+float(wcpu['milan'])*float(ucpu['milan'])+float(wcpu['genoa'])*float(ucpu['genoa'])+float(wcpu['sapphirerapids'])*float(ucpu['sapphirerapids'])+float(wcpu['cascadelake'])*float(ucpu['cascadelake'])+float(wcpu['icelake'])*float(ucpu['icelake'])
       umemtres=float(wcpu['skylake'])*float(umem['skylake'])+float(wcpu['milan'])*float(umem['milan'])+float(wcpu['genoa'])*float(umem['genoa'])+float(wcpu['sapphirerapids'])*float(umem['sapphirerapids'])+float(wcpu['cascadelake'])*float(umem['cascadelake'])+float(wcpu['icelake'])*float(umem['icelake'])
-      ugputres=float(wgpu['v100'])*float(ugpu['v100'])+float(wgpu['a40'])*float(ugpu['a40'])+float(wgpu['a100'])*float(ugpu['a100'])+float(wgpu['a100-mig'])*float(ugpu['a100-mig'])+float(wgpu['h100'])*float(ugpu['h100'])
+      ugputres=float(wgpu['v100'])*float(ugpu['v100'])+float(wgpu['a40'])*float(ugpu['a40'])+float(wgpu['a100'])*float(ugpu['a100'])+float(wgpu['a100-mig'])*float(ugpu['a100-mig'])+float(wgpu['h100'])*float(ugpu['h100'])+float(wgpu['h200'])*float(ugpu['h200'])
 
       ttres=tcputres+tmemtres+tgputres
       utres=ucputres+umemtres+ugputres
@@ -220,6 +231,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["gpualloc"],GPUAlloc)
       lsload.add_metric(["idletot"],IDLETot)
       lsload.add_metric(["downtot"],DOWNTot)
+      lsload.add_metric(["pwdtot"],PWDTot)
       lsload.add_metric(["draintot"],DRAINTot)
       lsload.add_metric(["mixedtot"],MIXEDTot)
       lsload.add_metric(["alloctot"],ALLOCTot)
@@ -228,6 +240,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["plannedtot"],PLANNEDTot)
       lsload.add_metric(["idlecpu"],IDLECPU)
       lsload.add_metric(["downcpu"],DOWNCPU)
+      lsload.add_metric(["pwdcpu"],PWDCPU)
       lsload.add_metric(["draincpu"],DRAINCPU)
       lsload.add_metric(["mixedcpu"],MIXEDCPU)
       lsload.add_metric(["alloccpu"],ALLOCCPU)
@@ -236,6 +249,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["plannedcpu"],PLANNEDCPU)
       lsload.add_metric(["idlemem"],IDLEMem)
       lsload.add_metric(["downmem"],DOWNMem)
+      lsload.add_metric(["pwdmem"],PWDMem)
       lsload.add_metric(["drainmem"],DRAINMem)
       lsload.add_metric(["mixedmem"],MIXEDMem)
       lsload.add_metric(["allocmem"],ALLOCMem)
@@ -244,6 +258,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["plannedmem"],PLANNEDMem)
       lsload.add_metric(["idlegpu"],IDLEGPU)
       lsload.add_metric(["downgpu"],DOWNGPU)
+      lsload.add_metric(["pwdgpu"],PWDGPU)
       lsload.add_metric(["draingpu"],DRAINGPU)
       lsload.add_metric(["mixedgpu"],MIXEDGPU)
       lsload.add_metric(["allocgpu"],ALLOCGPU)
@@ -262,6 +277,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["tgpua100"],tgpu['a100'])
       lsload.add_metric(["tgpua100mig"],tgpu['a100-mig'])
       lsload.add_metric(["tgpuh100"],tgpu['h100'])
+      lsload.add_metric(["tgpuh200"],tgpu['h200'])
       lsload.add_metric(["ucpuskylake"],ucpu['skylake'])
       lsload.add_metric(["ucpumilan"],ucpu['milan'])
       lsload.add_metric(["ucpugenoa"],ucpu['genoa'])
@@ -273,6 +289,7 @@ class SlurmClusterStatusCollector(Collector):
       lsload.add_metric(["ugpua100"],ugpu['a100'])
       lsload.add_metric(["ugpua100mig"],ugpu['a100-mig'])
       lsload.add_metric(["ugpuh100"],ugpu['h100'])
+      lsload.add_metric(["ugpuh200"],ugpu['h200'])
       lsload.add_metric(["umemskylake"],umem['skylake'])
       lsload.add_metric(["umemmilan"],umem['milan'])
       lsload.add_metric(["umemgenoa"],umem['genoa'])

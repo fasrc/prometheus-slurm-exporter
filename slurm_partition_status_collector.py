@@ -39,6 +39,10 @@ class SlurmPartStatusCollector(Collector):
     pdowncpu={}
     pdownmem={}
     pdowngpu={}
+    ppwdnode={}
+    ppwdcpu={}
+    ppwdmem={}
+    ppwdgpu={}
     pruncpu={}
     prunmem={}
     prungpu={}
@@ -114,6 +118,10 @@ class SlurmPartStatusCollector(Collector):
         pdowncpu[partition["PartitionName"]] = 0
         pdownmem[partition["PartitionName"]] = 0.0
         pdowngpu[partition["PartitionName"]] = 0
+        ppwdnode[partition["PartitionName"]] = 0
+        ppwdcpu[partition["PartitionName"]] = 0
+        ppwdmem[partition["PartitionName"]] = 0.0
+        ppwdgpu[partition["PartitionName"]] = 0
         ppendcnt[partition["PartitionName"]] = 0
         ppendusercnt[partition["PartitionName"]] = 0
         ppendacctcnt[partition["PartitionName"]] = 0
@@ -170,18 +178,39 @@ class SlurmPartStatusCollector(Collector):
         npartition[node["NodeName"]] = node["Partitions"].split(',')
 
         #Flag nodes by state
-        if "RESERVED" in node["State"]:
+        state = node["State"].split('+')
+
+        stateres = 0
+        statedown = 0
+        statepwd = 0
+
+        for s in state:
+          if s == "RESERVED":
+            stateres = 1
+          if s == "DOWN" or s == "DRAIN":
+            statedown = 1
+          if s == "POWERED_DOWN":
+            statepwd = 1
+
+        if stateres == 1:
           for part in npartition[node["NodeName"]]:
             presnode[part] = presnode[part]+1
             prescpu[part] = prescpu[part]+ncpu[node["NodeName"]]
             presmem[part] = presmem[part]+nmem[node["NodeName"]]
             presgpu[part] = presgpu[part]+ngpu[node["NodeName"]]
-        if "DRAIN" in node["State"] or "DOWN" in node["State"]:
+        if statedown == 1:
           for part in npartition[node["NodeName"]]:
             pdownnode[part] = pdownnode[part]+1
             pdowncpu[part] = pdowncpu[part]+ncpu[node["NodeName"]]
             pdownmem[part] = pdownmem[part]+nmem[node["NodeName"]]
             pdowngpu[part] = pdowngpu[part]+ngpu[node["NodeName"]]
+        if statepwd == 1:
+          for part in npartition[node["NodeName"]]:
+            ppwdnode[part] = ppwdnode[part]+1
+            ppwdcpu[part] = ppwdcpu[part]+ncpu[node["NodeName"]]
+            ppwdmem[part] = ppwdmem[part]+nmem[node["NodeName"]]
+            ppwdgpu[part] = ppwdgpu[part]+ngpu[node["NodeName"]]
+
 
         #Initializing Counters
         for part in npartition[node["NodeName"]]:
@@ -240,6 +269,7 @@ class SlurmPartStatusCollector(Collector):
 
             for t in taskid:
               t = t.split('%',1)[0]
+              t = t.split(':',1)[0]
               if "-" in t:
                 ts = t.split('-')
                 jobcnt = max(int(ts[1])-int(ts[0]),1) + 1 + jobcnt
@@ -425,6 +455,10 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','downmem'],pdownmem[p])
       spart.add_metric([p,'','','downgpu'],pdowngpu[p])
       spart.add_metric([p,'','','downnode'],pdownnode[p])
+      spart.add_metric([p,'','','pwdcpu'],ppwdcpu[p])
+      spart.add_metric([p,'','','pwdmem'],ppwdmem[p])
+      spart.add_metric([p,'','','pwdgpu'],ppwdgpu[p])
+      spart.add_metric([p,'','','pwdnode'],ppwdnode[p])
       spart.add_metric([p,'','','perdown'],float(pdownnode[p])/max(float(pnode[p]),1.0))
       spart.add_metric([p,'','','perres'],float(presnode[p])/max(float(pnode[p]),1.0))
       spart.add_metric([p,'','','runcpu'],pruncpu[p])
