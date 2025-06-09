@@ -573,4 +573,4 @@ if __name__ == "__main__":
   REGISTRY.register(SlurmPartStatusCollector())
   while True: 
     # period between collection
-    time.sleep(45)
+    time.sleep(55)
