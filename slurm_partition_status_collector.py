@@ -272,6 +272,10 @@ class SlurmPartStatusCollector(Collector):
               t = t.split(':',1)[0]
               if "-" in t:
                 ts = t.split('-')
+
+                if not ts[1]:
+                  ts[1] = 0
+
                 jobcnt = max(int(ts[1])-int(ts[0]),1) + 1 + jobcnt
               else:
                 jobcnt = jobcnt + 1
