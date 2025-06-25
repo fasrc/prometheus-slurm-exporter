@@ -250,7 +250,7 @@ def getdata_current_or_missing_dates(time_stamp_entry_file):
             for p_end_date, end_date in missing_dates:
                 e_date = str(end_date)
                 s_date = str((datetime.strptime(e_date, '%Y-%m-%d') - timedelta(days=10)).date())
-                today_sacct_data_file_path = "/tmp/kempner_sacct_collect_tmp_files/today_sacct.data"
+                today_sacct_data_file_path = "/slurm/kempner_sacct_collect_tmp_files/today_sacct.data"
                 run_command(s_date, e_date, today_sacct_data_file_path)
                 process_cpu_gpu_usage(today_sacct_data_file_path)
                 merge_files(file_pairs)
@@ -482,11 +482,11 @@ class SlurmKempnerSacctsCollector:
         yield tot_gpu_tres_hours_user_metric
 
 file_pairs = [
-    ('/tmp/kempner_sacct_collect_tmp_files/partition_dictionary_sum.csv', '/tmp/kempner_sacct_collect_tmp_files/partition_dictionary.csv'),
-    ('/tmp/kempner_sacct_collect_tmp_files/group_dictionary_sum.csv', '/tmp/kempner_sacct_collect_tmp_files/group_dictionary.csv'),
-    ('/tmp/kempner_sacct_collect_tmp_files/user_dictionary_sum.csv', '/tmp/kempner_sacct_collect_tmp_files/user_dictionary.csv')
+    ('/slurm/kempner_sacct_collect_tmp_files/partition_dictionary_sum.csv', '/slurm/kempner_sacct_collect_tmp_files/partition_dictionary.csv'),
+    ('/slurm/kempner_sacct_collect_tmp_files/group_dictionary_sum.csv', '/slurm/kempner_sacct_collect_tmp_files/group_dictionary.csv'),
+    ('/slurm/kempner_sacct_collect_tmp_files/user_dictionary_sum.csv', '/slurm/kempner_sacct_collect_tmp_files/user_dictionary.csv')
 ]
-time_stamp_file = "/tmp/kempner_sacct_collect_tmp_files/sacct_collect_timestamp.data"
+time_stamp_file = "/slurm/kempner_sacct_collect_tmp_files/sacct_collect_timestamp.data"
 
 if __name__ == "__main__":
     update_status = getdata_current_or_missing_dates(time_stamp_file)
