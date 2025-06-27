@@ -93,7 +93,12 @@ class SlurmPartStatusCollector(Collector):
         #Get the total size of a partition
         tres = dict(s.split("=", 1) for s in shlex.split(partition['TRES'].replace(",", " ")) if '=' in s)
         pcpu[partition["PartitionName"]] = int(tres['cpu'])
-        pmem[partition["PartitionName"]] = float(tres['mem'].strip('M'))/1024
+
+        if 'G' in tres['mem']:
+          pmem[partition["PartitionName"]] = float(tres['mem'].strip('G'))
+        else:
+          pmem[partition["PartitionName"]] = float(tres['mem'].strip('M'))/1024
+
         pnode[partition["PartitionName"]] = int(tres['node'])
         if 'gres/gpu' in tres:
           pgpu[partition["PartitionName"]] = int(tres['gres/gpu'])
