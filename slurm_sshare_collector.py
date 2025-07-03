@@ -57,4 +57,4 @@ if __name__ == "__main__":
   REGISTRY.register(SlurmSshareCollector())
   while True: 
     # period between collection
-    time.sleep(30)
+    time.sleep(55)
