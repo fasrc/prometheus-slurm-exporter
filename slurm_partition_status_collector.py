@@ -413,9 +413,15 @@ class SlurmPartStatusCollector(Collector):
 
                     for n in proc2.stdout:
                       n=n.strip("\n")
-                      npcpu[n][part] = npcpu[n][part] + cpucnt
-                      npmem[n][part] = npmem[n][part] + float(nodestat["Mem"])/1024
-                      npgpu[n][part] = npgpu[n][part] + gpucnt
+                      #This is to cover cases where nodes were moved to a different partition but the jobs from the old partition still exist
+                      #In this case we will just drop the data and move on as this is a temporary state.
+                      try:
+                        npcpu[n][part] = npcpu[n][part] + cpucnt
+                        npmem[n][part] = npmem[n][part] + float(nodestat["Mem"])/1024
+                        npgpu[n][part] = npgpu[n][part] + gpucnt
+                      except:
+                        #Do not do anything
+                        continue
 
     #Doing node based sums
     for n in ncpu:
