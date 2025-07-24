@@ -80,11 +80,11 @@ class SlurmClusterStatusCollector(Collector):
       RESGPU=0
       PLANNEDGPU=0
       PerAlloc=0
-      
+
       tcpu={'skylake': 0, 'milan': 0, 'genoa': 0, 'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
       ucpu={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
       tgpu={'v100': 0, 'rtxa6000': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
-      ugpu={'v100': 0, 'rtxa6000': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
+      ugpu={'v100': 0, 'rtxa6000': 0, 'a40': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
       umem={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0}
 
       #Current translation from TRES to Double Precision GFLOps
@@ -317,6 +317,6 @@ class SlurmClusterStatusCollector(Collector):
 if __name__ == "__main__":
   start_http_server(9002)
   REGISTRY.register(SlurmClusterStatusCollector())
-  while True: 
+  while True:
     # period between collection
     time.sleep(30)
