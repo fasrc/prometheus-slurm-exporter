@@ -275,6 +275,7 @@ class SlurmPartStatusCollector(Collector):
             for t in taskid:
               t = t.split('%',1)[0]
               t = t.split(':',1)[0]
+              t = t.strip(".")
               if "-" in t:
                 ts = t.split('-')
 
