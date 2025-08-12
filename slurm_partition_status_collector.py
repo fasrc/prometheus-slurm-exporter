@@ -387,7 +387,11 @@ class SlurmPartStatusCollector(Collector):
                   for c in cpuid:
                     if "-" in c:
                       cs = c.split('-')
-                      cpucnt = int(cs[1]) - int(cs[0]) + 1 + cpucnt
+
+                      if not cs[1]:
+                        cs[1] = 0
+
+                      cpucnt = max(int(cs[1]) - int(cs[0]),1) + 1 + cpucnt
                     else:
                       cpucnt = cpucnt + 1
 
