@@ -25,6 +25,7 @@ class SlurmClusterStatusCollector(Collector):
   def collect(self):
     try:
       proc = subprocess.Popen([
+      'timeout','-s','9','60s',
       'scontrol',
       '-o', 'show', 'node'
       ], stdout=subprocess.PIPE,

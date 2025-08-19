@@ -105,7 +105,7 @@ class SlurmClusterStatusCollector:
 
     def collect_metrics(self):
         """Collect all Slurm metrics."""
-        for line in self.run_command(['scontrol', '-o', 'show', 'node']):
+        for line in self.run_command(['timeout','-s','9','60s','scontrol', '-o', 'show', 'node']):
             if "Partitions=kempner" in line:
                 node, cfgtres, alloctres = self.parse_node(line)
                 self.process_node_info(node, cfgtres, alloctres)

@@ -53,7 +53,7 @@ class SlurmKempnerStatsCollector:
 
     def get_showq_data(self, partition):
         """Collect data from showq for a specific partition."""
-        command = ['/usr/local/bin/showq', '-s', '-p', partition]
+        command = ['timeout','-s','9','60s','/usr/local/bin/showq', '-s', '-p', partition]
         return self.run_command(command)
     
     def process_showq_data(self, lines, partition):

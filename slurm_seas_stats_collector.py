@@ -25,7 +25,7 @@ class SlurmSeasStatsCollector(Collector):
   def collect(self):
     seas = GaugeMetricFamily('seas', 'Stats for SEAS', labels=['field'])
     try:
-      proc = subprocess.Popen(['/usr/bin/squeue',
+      proc = subprocess.Popen(['timeout','-s','9','60s','/usr/bin/squeue',
       '--account=acc_lab,aizenberg_lab,amin_lab,anderson_lab,aziz_lab,barak_lab,bertoldi_lab,brenner_lab,capasso_lab,chen_lab_seas,chong_lab_seas,clarke_lab,doshi-velez_lab,dwork_lab,bfarrell_lab,fdoyle_lab,gajos_lab,glassman_lab,hekstra_lab,hills_lab,hu_lab_seas,idreos_lab,jacob_lab,janapa_reddi_lab,jialiu_lab,jlewis_lab,kaxiras_lab,keith_lab_seas,keutsch_lab,kohler_lab,koumoutsakos_lab,kozinsky_lab,kung_lab,linz_lab,mahadevan_lab,manoharan_lab,martin_lab_seas,mazur_lab_seas,mccoll_lab,mcelroy_lab,mitragotri_lab,moorcroft_lab,nelson_lab,parkes_lab,pehlevan_lab,pfister_lab,protopapas_lab,rush_lab,seas_computing,spaepen_lab,sunderland_lab,suo_lab,tambe_lab,tziperman_lab,vadhan_lab,vlassak_lab,walsh_lab_seas,weitz_lab,wofsy_lab,wordsworth_lab,ysinger_group,yu_lab,zickler_lab',
       '--Format=RestartCnt,PendingTime,Partition',
       '--noheader',
@@ -78,7 +78,7 @@ class SlurmSeasStatsCollector(Collector):
       seas.add_metric(["seaspartjobs"],jseas)
 
     try:
-      proc = subprocess.Popen(['/usr/local/bin/showq',
+      proc = subprocess.Popen(['timeout','-s','9','60s','/usr/local/bin/showq',
       '-s',
       '-p',
       'seas_compute',
@@ -103,7 +103,7 @@ class SlurmSeasStatsCollector(Collector):
           seas.add_metric(["scpj"],summary[8])
 
     try:
-      proc = subprocess.Popen(['/usr/local/bin/showq',
+      proc = subprocess.Popen(['timeout','-s','9','60s','/usr/local/bin/showq',
       '-s',
       '-p',
       'seas_gpu',

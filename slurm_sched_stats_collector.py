@@ -47,19 +47,18 @@ class SlurmSchedStatsCollector(Collector):
 
       # Slurmctld Stats
       sdiag = GaugeMetricFamily('sdiag', 'Stats from sdiag', labels=['field'])
-     
 
       sdiag.add_metric(['server_thread_count'],sd['Serverthreadcount'])
       sdiag.add_metric(['agent_queue_size'],sd['Agentqueuesize'])
       sdiag.add_metric(['agent_queue_size'],sd['Agentqueuesize'])
-  
+
       # Jobs Stats
       sdiag.add_metric(['jobs_submitted'],sd['Jobssubmitted'])
       sdiag.add_metric(['jobs_started'],sd['Jobsstarted'])
       sdiag.add_metric(['jobs_completed'],sd['Jobscompleted'])
       sdiag.add_metric(['jobs_canceled'],sd['Jobscanceled'])
       sdiag.add_metric(['jobs_failed'],sd['Jobsfailed'])
-  
+
       # Main Scheduler Stats
       sdiag.add_metric(['main_last_cycle'],sd['mLastcycle'])
       sdiag.add_metric(['main_max_cycle'],sd['mMaxcycle'])
@@ -68,7 +67,7 @@ class SlurmSchedStatsCollector(Collector):
       sdiag.add_metric(['main_mean_depth_cycle'],sd['mMeandepthcycle'])
       sdiag.add_metric(['main_cycles_per_minute'],sd['mCyclesperminute'])  
       sdiag.add_metric(['main_last_queue_length'],sd['mLastqueuelength'])
-  
+
       # Backfilling stats
       sdiag.add_metric(['bf_total_jobs_since_slurm_start'],sd['bTotalbackfilledjobssincelastslurmstart'])
       sdiag.add_metric(['bf_total_jobs_since_cycle_start'],sd['bTotalbackfilledjobssincelaststatscyclestart'])
@@ -87,6 +86,6 @@ class SlurmSchedStatsCollector(Collector):
 if __name__ == "__main__":
   start_http_server(9001)
   REGISTRY.register(SlurmSchedStatsCollector())
-  while True: 
+  while True:
     # period between collection
     time.sleep(30)

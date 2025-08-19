@@ -73,6 +73,7 @@ class SlurmPartStatusCollector(Collector):
 
     try:
       proc = subprocess.Popen([
+      'timeout','-s','9','60s',
       'scontrol',
       '-o', 'show', 'partition'
       ], stdout=subprocess.PIPE,
@@ -156,6 +157,7 @@ class SlurmPartStatusCollector(Collector):
 
     try:
       proc = subprocess.Popen([
+      'timeout','-s','9','60s',
       'scontrol',
       '-o', 'show', 'node'
       ], stdout=subprocess.PIPE,
@@ -231,6 +233,7 @@ class SlurmPartStatusCollector(Collector):
     #Get job information
     try:
       proc = subprocess.Popen([
+      'timeout','-s','9','60s',
       'scontrol',
       '-od', 'show', 'job'
       ], stdout=subprocess.PIPE,
@@ -411,6 +414,7 @@ class SlurmPartStatusCollector(Collector):
                   except:
                     #Splitting nodelist into node names
                     proc2 = subprocess.Popen([
+                    'timeout','-s','9','60s',
                     'scontrol',
                     'show', 'hostnames', nodestat["Nodes"]
                     ], stdout=subprocess.PIPE,
