@@ -5,6 +5,10 @@
 
 These collectors are intended to be used with prometheus to ship stats.  Each collector collects data on a different aspect of slurm.  Feel free to add or update these collectors to suit your needs.
 
+### SlurmJobNodeCollector
+
+This collector monitors individual SLURM job states and node status. It tracks job states (RUNNING, PENDING, etc.) and node availability (UP/DOWN), providing detailed visibility into job execution and cluster health at the individual job and node level.
+
 ### SlurmSchedStatsCollector
 
 This collector is a prometheus version of this:
