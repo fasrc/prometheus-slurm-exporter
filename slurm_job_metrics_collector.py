@@ -67,7 +67,6 @@ class SlurmJobNodeCollector(Collector):
                 
         except Exception as e:
             print(f"Error collecting job data: {e}")
-            # Still continue to try node collection
 
         # Try to collect node status
         try:
