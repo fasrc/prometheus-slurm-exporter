@@ -1,12 +1,13 @@
 #!/usr/bin/python3.11
 
 """
-slurm_job_metrics_collector.py
+slurm_kempner_job_metrics_collector.py
 Prometheus exporter for detailed SLURM job metrics.
 
 This script:
 - Periodically collects granular SLURM job and node data using scontrol, squeue, sacct, and sinfo commands.
 - Exposes these metrics in Prometheus format at http://localhost:9100/metrics.
+- Filters for Kempner partition jobs and nodes only (configurable)
 
 """
 
@@ -35,7 +36,7 @@ class SlurmJobNodeCollector(Collector):
         jobs_per_partition = GaugeMetricFamily('slurm_jobs_per_partition', 'Number of jobs per SLURM partition', labels=['partition'])
         node_status = GaugeMetricFamily('slurm_node_status', 'SLURM node status (1=up, 0=down)', labels=['node', 'state'])
 
-        # Try to collect job data 
+        # Run squeue only once - to get job list and states 
         try:
             job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/squeue', '--noheader', '--format=%i %T %P'])
             partition_counts = {}
@@ -46,6 +47,10 @@ class SlurmJobNodeCollector(Collector):
                     if len(parts) >= 3:
                         job_id, state, partition = parts[0], parts[1], parts[2]
                         
+                        # Only process Kempner partitions
+                        if 'kempner' not in partition.lower():
+                            continue
+
                         # Add job state 
                         value = 1 if state == "RUNNING" else 0
                         job_state.add_metric([job_id, state], value)
@@ -70,11 +75,16 @@ class SlurmJobNodeCollector(Collector):
 
         # Try to collect node status
         try:
-            sinfo_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sinfo', '-Nh', '-o', '%N %T'])
+            sinfo_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sinfo', '-Nh', '-o', '%N %T %R'])
             for line in sinfo_output.splitlines():
                 parts = line.strip().split()
-                if len(parts) >= 2:
-                    node, state = parts[0], parts[1]
+                if len(parts) >= 3:
+                    node, state, partition = parts[0], parts[1], parts[2]
+                    
+                    # Only process Kempner partitions
+                    if 'kempner' not in partition.lower():
+                        continue
+
                     value = 1 if state.upper() == "UP" else 0
                     node_status.add_metric([node, state], value)
         except Exception as e:
@@ -87,9 +97,7 @@ class SlurmJobNodeCollector(Collector):
         yield node_status
 
     def run_cmd(self, cmd):
-        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(f"Command failed: {cmd}\n{result.stderr}")
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
 
 if __name__ == "__main__":
@@ -97,7 +105,7 @@ if __name__ == "__main__":
     REGISTRY.register(SlurmJobNodeCollector())
     
     # For testing: run once and keep server alive for data dump
-    print("Collector started. Metrics available at http://localhost:9100/metrics")
+    print("Kempner job metrics collector started. Metrics available at http://localhost:9100/metrics")
     print("For testing - keeping server alive for 1 hour to allow data collection")
     time.sleep(3600)  # Keep alive for 1 hour, then exit
     
