@@ -30,35 +30,14 @@ class SlurmJobNodeCollector(Collector):
         pass
 
     def collect(self):
-        try:
-            job_state = GaugeMetricFamily(
-                'slurm_job_state',
-                'SLURM job state (1=RUNNING, 0=other)',
-                labels=['job_id', 'state']
-            )
-            
-            scontrol = GaugeMetricFamily(
-                'slurm_scontrol_raw',
-                'Raw SLURM job information from scontrol show job',
-                labels=['job_id', 'scontrol_data']
-            )
-            
-            jobs_per_partition = GaugeMetricFamily(
-                'slurm_jobs_per_partition',
-                'Number of jobs per SLURM partition',
-                labels=['partition']
-            )
-            
-            node_status = GaugeMetricFamily(
-                'slurm_node_status',
-                'SLURM node status (1=up, 0=down)',
-                labels=['node', 'state']
-            )
+        job_state = GaugeMetricFamily('slurm_job_state', 'SLURM job state (1=RUNNING, 0=other)', labels=['job_id', 'state'])
+        scontrol = GaugeMetricFamily('slurm_scontrol_raw', 'Raw SLURM job information from scontrol show job', labels=['job_id', 'scontrol_data'])
+        jobs_per_partition = GaugeMetricFamily('slurm_jobs_per_partition', 'Number of jobs per SLURM partition', labels=['partition'])
+        node_status = GaugeMetricFamily('slurm_node_status', 'SLURM node status (1=up, 0=down)', labels=['node', 'state'])
 
-            # Collect job states and detailed info with ONE squeue call
-            # Get job ID, state, and partition all at once
-            job_output = self.run_cmd('squeue --noheader --format="%i %T %P"')
-            
+        # Try to collect job data 
+        try:
+            job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/squeue', '--noheader', '--format=%i %T %P'])
             partition_counts = {}
             
             for line in job_output.splitlines():
@@ -71,12 +50,11 @@ class SlurmJobNodeCollector(Collector):
                         value = 1 if state == "RUNNING" else 0
                         job_state.add_metric([job_id, state], value)
                         
-                        # Count partitions
                         partition_counts[partition] = partition_counts.get(partition, 0) + 1
                         
-                        # Add raw scontrol data
+                        # Try scontrol for each job 
                         try:
-                            scontrol_data = self.run_cmd(f'scontrol show job {job_id}')
+                            scontrol_data = self.run_cmd(['timeout', '-s', '9', '60s', 'scontrol', '-o', 'show', 'job', job_id])
                             cleaned_data = scontrol_data.replace('\n', ' ').replace('"', '\\"')
                             scontrol.add_metric([job_id, cleaned_data], 1)
                         except Exception as e:
@@ -86,24 +64,28 @@ class SlurmJobNodeCollector(Collector):
             # Add partition counts
             for partition, count in partition_counts.items():
                 jobs_per_partition.add_metric([partition], count)
+                
+        except Exception as e:
+            print(f"Error collecting job data: {e}")
+            # Still continue to try node collection
 
-            # Add node statuses
-            sinfo_output = self.run_cmd('sinfo -Nh -o "%N %T"')
+        # Try to collect node status
+        try:
+            sinfo_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sinfo', '-Nh', '-o', '%N %T'])
             for line in sinfo_output.splitlines():
                 parts = line.strip().split()
                 if len(parts) >= 2:
                     node, state = parts[0], parts[1]
                     value = 1 if state.upper() == "UP" else 0
                     node_status.add_metric([node, state], value)
-
-            yield job_state
-            yield scontrol
-            yield jobs_per_partition
-            yield node_status
-
         except Exception as e:
-            print(f"Error in collect method: {e}")
-            return
+            print(f"Error collecting node data: {e}")
+
+        # Always yield metrics (even if empty)
+        yield job_state
+        yield scontrol  
+        yield jobs_per_partition
+        yield node_status
 
     def run_cmd(self, cmd):
         result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
