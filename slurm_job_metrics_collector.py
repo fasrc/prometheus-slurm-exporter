@@ -8,9 +8,6 @@ This script:
 - Periodically collects granular SLURM job and node data using scontrol, squeue, sacct, and sinfo commands.
 - Exposes these metrics in Prometheus format at http://localhost:9100/metrics.
 
-Usage:
-  pip install prometheus_client
-  python slurm_job_metrics_collector.py
 """
 
 import sys, os
@@ -70,14 +67,14 @@ class SlurmJobNodeCollector(Collector):
                     if len(parts) >= 3:
                         job_id, state, partition = parts[0], parts[1], parts[2]
                         
-                        # Add job state metric
+                        # Add job state 
                         value = 1 if state == "RUNNING" else 0
                         job_state.add_metric([job_id, state], value)
                         
                         # Count partitions
                         partition_counts[partition] = partition_counts.get(partition, 0) + 1
                         
-                        # Get raw scontrol data
+                        # Add raw scontrol data
                         try:
                             scontrol_data = self.run_cmd(f'scontrol show job {job_id}')
                             cleaned_data = scontrol_data.replace('\n', ' ').replace('"', '\\"')
@@ -90,7 +87,7 @@ class SlurmJobNodeCollector(Collector):
             for partition, count in partition_counts.items():
                 jobs_per_partition.add_metric([partition], count)
 
-            # Collect node statuses
+            # Add node statuses
             sinfo_output = self.run_cmd('sinfo -Nh -o "%N %T"')
             for line in sinfo_output.splitlines():
                 parts = line.strip().split()
