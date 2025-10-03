@@ -5,7 +5,7 @@ slurm_kempner_job_metrics_collector.py
 Prometheus exporter for detailed SLURM job metrics.
 
 This script:
-- Periodically collects granular SLURM job and node data using scontrol, sacct, and sinfo commands.
+- Periodically collects granular SLURM job and node data using sacct and sinfo commands.
 - Exposes these metrics in Prometheus format at http://localhost:9100/metrics.
 - Filters for Kempner partition jobs and nodes only (configurable)
 
@@ -55,44 +55,43 @@ class SlurmJobNodeCollector(Collector):
 
     def collect(self):
         job_state = GaugeMetricFamily('slurm_job_state', 'SLURM job state (1=RUNNING, 0=other)', labels=['job_id', 'state'])
-        scontrol = GaugeMetricFamily('slurm_scontrol_raw', 'Raw SLURM job information from scontrol show job', labels=['job_id', 'scontrol_data'])
+        job_details = GaugeMetricFamily('slurm_job_details', 'Comprehensive SLURM job information from sacct', 
+                                      labels=['job_id', 'user', 'partition', 'account', 'state', 'tres_cpu', 'tres_mem', 'tres_gres', 'start_time', 'end_time', 'requeue'])
         jobs_per_partition = GaugeMetricFamily('slurm_jobs_per_partition', 'Number of jobs per SLURM partition', labels=['partition'])
         node_status = GaugeMetricFamily('slurm_node_status', 'SLURM node status (1=up, 0=down)', labels=['node', 'state'])
 
         kempner_partitions = self.get_kempner_partitions()
 
-        # Get job data (job ID, state, and partition)
+        # Get job data from sacct 
         try:
             job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct', 
-                                     '--parsable2', '--noheader', 
+                                     '--parsable2', '--noheader', '--allusers', '-X',
                                      '--partition=' + kempner_partitions,
-                                     '--format=JobID,State,Partition'])
+                                     '--format=JobID,User,Partition,Account,State,AllocCPUS,ReqMem,ReqGRES,Start,End,Requeue'])
             partition_counts = {}
             
             for line in job_output.splitlines():
                 if line.strip():
                     parts = line.strip().split('|')  
-                    if len(parts) >= 3:
-                        job_id, state, partition = parts[0], parts[1], parts[2]
+                    if len(parts) >= 11:
+                        job_id, user, partition, account, state, cpu, memory, gres, start_time, end_time, requeue = parts[0:11]
                         
                         # Skip empty or invalid entries
                         if not job_id or not state or not partition:
                             continue
 
-                        # Add job state 
+                        # Add job state
                         value = 1 if state == "RUNNING" else 0
                         job_state.add_metric([job_id, state], value)
                         
-                        partition_counts[partition] = partition_counts.get(partition, 0) + 1
+                        # Add job details 
+                        job_details.add_metric([
+                            job_id, user, partition, account, state, 
+                            cpu or "0", memory or "0", gres or "none", 
+                            start_time or "unknown", end_time or "unknown", requeue or "0"
+                        ], 1)
                         
-                        # Try scontrol for each job 
-                        try:
-                            scontrol_data = self.run_cmd(['timeout', '-s', '9', '60s', 'scontrol', '-o', 'show', 'job', job_id])
-                            cleaned_data = scontrol_data.replace('\n', ' ').replace('"', '\\"')
-                            scontrol.add_metric([job_id, cleaned_data], 1)
-                        except Exception as e:
-                            print(f"Error getting scontrol data for job {job_id}: {e}")
-                            scontrol.add_metric([job_id, "ERROR: scontrol failed"], 0)
+                        partition_counts[partition] = partition_counts.get(partition, 0) + 1
 
             # Add partition counts
             for partition, count in partition_counts.items():
@@ -118,7 +117,7 @@ class SlurmJobNodeCollector(Collector):
 
         # Always yield metrics (even if empty)
         yield job_state
-        yield scontrol  
+        yield job_details  
         yield jobs_per_partition
         yield node_status
 
@@ -138,3 +137,6 @@ if __name__ == "__main__":
     # For production: uncomment the lines below and comment out the testing section above
     # while True:
     #     time.sleep(600)  # Collect metrics every 10 minutes
+
+    #
+    # timeout -s 9 60s /usr/bin/sacct --parsable2 --noheader --partition=kempner,kempner_dev,kempner_h100,kempner_requeue --format=JobID,User,Partition,Account,State,AllocCPUS,ReqMem,ReqGRES,Start,End,Requeue --starttime=today
