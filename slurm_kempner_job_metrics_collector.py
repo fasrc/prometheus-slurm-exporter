@@ -5,8 +5,10 @@ slurm_kempner_job_metrics_collector.py
 Prometheus exporter for detailed SLURM job metrics.
 
 This script:
-- Periodically collects granular SLURM job and node data using sacct and sinfo commands.
-- Exposes these metrics in Prometheus format at http://localhost:9100/metrics.
+- Periodically collects granular SLURM data using:
+        - 'sinfo' twice (get kempner partitions, get node status) 
+        - 'sacct' once (get job data)
+- Exposes these metrics in Prometheus format at http://localhost:9009/metrics.
 - Filters for Kempner partition jobs and nodes only (configurable)
 
 """
@@ -56,7 +58,7 @@ class SlurmJobNodeCollector(Collector):
     def collect(self):
         job_state = GaugeMetricFamily('slurm_job_state', 'SLURM job state (1=RUNNING, 0=other)', labels=['job_id', 'state'])
         job_details = GaugeMetricFamily('slurm_job_details', 'Comprehensive SLURM job information from sacct', 
-                                      labels=['job_id', 'user', 'partition', 'account', 'state', 'tres_cpu', 'tres_mem', 'tres_gres', 'start_time', 'end_time', 'requeue'])
+                                      labels=['job_id', 'user', 'partition', 'account', 'state', 'tres_cpu', 'tres_mem', 'tres_gres', 'start_time', 'end_time', 'requeue', 'elapsed', 'alloc_tres', 'node_list', 'ncpus'])
         jobs_per_partition = GaugeMetricFamily('slurm_jobs_per_partition', 'Number of jobs per SLURM partition', labels=['partition'])
         node_status = GaugeMetricFamily('slurm_node_status', 'SLURM node status (1=up, 0=down)', labels=['node', 'state'])
 
@@ -67,14 +69,15 @@ class SlurmJobNodeCollector(Collector):
             job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct', 
                                      '--parsable2', '--noheader', '--allusers', '-X',
                                      '--partition=' + kempner_partitions,
-                                     '--format=JobID,User,Partition,Account,State,AllocCPUS,ReqMem,ReqGRES,Start,End,Requeue'])
+                                     '--format=JobID,User,Partition,Account,State,AllocCPUS,ReqMem,ReqGRES,Start,End,Requeue,Elapsed,AllocTRES,NodeList,NCPUs',
+                                     '--starttime=today'])
             partition_counts = {}
             
             for line in job_output.splitlines():
                 if line.strip():
                     parts = line.strip().split('|')  
-                    if len(parts) >= 11:
-                        job_id, user, partition, account, state, cpu, memory, gres, start_time, end_time, requeue = parts[0:11]
+                    if len(parts) >= 15:
+                        job_id, user, partition, account, state, cpu, memory, gres, start_time, end_time, requeue, elapsed, alloc_tres, node_list, ncpus = parts[0:15]
                         
                         # Skip empty or invalid entries
                         if not job_id or not state or not partition:
@@ -84,11 +87,12 @@ class SlurmJobNodeCollector(Collector):
                         value = 1 if state == "RUNNING" else 0
                         job_state.add_metric([job_id, state], value)
                         
-                        # Add job details 
+                        # Add job details with the four new fields
                         job_details.add_metric([
                             job_id, user, partition, account, state, 
                             cpu or "0", memory or "0", gres or "none", 
-                            start_time or "unknown", end_time or "unknown", requeue or "0"
+                            start_time or "unknown", end_time or "unknown", requeue or "0",
+                            elapsed or "0", alloc_tres or "none", node_list or "unknown", ncpus or "0"
                         ], 1)
                         
                         partition_counts[partition] = partition_counts.get(partition, 0) + 1
@@ -126,17 +130,16 @@ class SlurmJobNodeCollector(Collector):
         return result.stdout.strip()
 
 if __name__ == "__main__":
-    start_http_server(9100)
+    start_http_server(9009)
     REGISTRY.register(SlurmJobNodeCollector())
     
     # For testing: run once and keep server alive for data dump
-    print("Kempner job metrics collector started. Metrics available at http://localhost:9100/metrics")
+    print("Kempner job metrics collector started. Metrics available at http://localhost:9009/metrics")
     print("For testing - keeping server alive for 1 hour to allow data collection")
     time.sleep(3600)  # Keep alive for 1 hour, then exit
     
     # For production: uncomment the lines below and comment out the testing section above
     # while True:
     #     time.sleep(600)  # Collect metrics every 10 minutes
-
-    #
-    # timeout -s 9 60s /usr/bin/sacct --parsable2 --noheader --partition=kempner,kempner_dev,kempner_h100,kempner_requeue --format=JobID,User,Partition,Account,State,AllocCPUS,ReqMem,ReqGRES,Start,End,Requeue --starttime=today
+    
+    print("Kempner job metrics collector finished.")
