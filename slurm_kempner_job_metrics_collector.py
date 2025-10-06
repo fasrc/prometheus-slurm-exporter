@@ -58,7 +58,7 @@ class SlurmJobNodeCollector(Collector):
     def collect(self):
         job_state = GaugeMetricFamily('slurm_job_state', 'SLURM job state (1=RUNNING, 0=other)', labels=['job_id', 'state'])
         job_details = GaugeMetricFamily('slurm_job_details', 'Comprehensive SLURM job information from sacct', 
-                                      labels=['job_id', 'user', 'partition', 'account', 'state', 'tres_cpu', 'tres_mem', 'tres_gres', 'start_time', 'end_time', 'requeue', 'elapsed', 'alloc_tres', 'node_list', 'ncpus'])
+                                      labels=['job_id', 'user', 'partition', 'account', 'state', 'tres_cpu', 'tres_mem', 'tres_gres', 'start_time', 'end_time', 'elapsed', 'alloc_tres', 'node_list', 'ncpus'])
         jobs_per_partition = GaugeMetricFamily('slurm_jobs_per_partition', 'Number of jobs per SLURM partition', labels=['partition'])
         node_status = GaugeMetricFamily('slurm_node_status', 'SLURM node status (1=up, 0=down)', labels=['node', 'state'])
 
@@ -69,15 +69,15 @@ class SlurmJobNodeCollector(Collector):
             job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct', 
                                      '--parsable2', '--noheader', '--allusers', '-X',
                                      '--partition=' + kempner_partitions,
-                                     '--format=JobID,User,Partition,Account,State,AllocCPUS,ReqMem,ReqGRES,Start,End,Requeue,Elapsed,AllocTRES,NodeList,NCPUs',
+                                     '--format=JobID,User,Partition,Account,State,AllocCPUS,ReqMem,ReqTRES,Start,End,Elapsed,AllocTRES,NodeList,NCPUs',
                                      '--starttime=today'])
             partition_counts = {}
             
             for line in job_output.splitlines():
                 if line.strip():
                     parts = line.strip().split('|')  
-                    if len(parts) >= 15:
-                        job_id, user, partition, account, state, cpu, memory, gres, start_time, end_time, requeue, elapsed, alloc_tres, node_list, ncpus = parts[0:15]
+                    if len(parts) >= 14:
+                        job_id, user, partition, account, state, cpu, memory, tres, start_time, end_time, elapsed, alloc_tres, node_list, ncpus = parts[0:14]
                         
                         # Skip empty or invalid entries
                         if not job_id or not state or not partition:
@@ -87,11 +87,11 @@ class SlurmJobNodeCollector(Collector):
                         value = 1 if state == "RUNNING" else 0
                         job_state.add_metric([job_id, state], value)
                         
-                        # Add job details with the four new fields
+                        # Add job details 
                         job_details.add_metric([
                             job_id, user, partition, account, state, 
-                            cpu or "0", memory or "0", gres or "none", 
-                            start_time or "unknown", end_time or "unknown", requeue or "0",
+                            cpu or "0", memory or "0", tres or "none", 
+                            start_time or "unknown", end_time or "unknown",
                             elapsed or "0", alloc_tres or "none", node_list or "unknown", ncpus or "0"
                         ], 1)
                         
@@ -126,7 +126,7 @@ class SlurmJobNodeCollector(Collector):
         yield node_status
 
     def run_cmd(self, cmd):
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True)
         return result.stdout.strip()
 
 if __name__ == "__main__":
@@ -141,5 +141,3 @@ if __name__ == "__main__":
     # For production: uncomment the lines below and comment out the testing section above
     # while True:
     #     time.sleep(600)  # Collect metrics every 10 minutes
-    
-    print("Kempner job metrics collector finished.")
