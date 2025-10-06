@@ -135,6 +135,6 @@ if __name__ == "__main__":
     
     print("Kempner job metrics collector started. Metrics available at http://localhost:9009/metrics")
     
-    # Collect metrics every 30 seconds for telegraf
+    # Collect metrics every 30 seconds 
     while True:
         time.sleep(30)
