@@ -1,0 +1,10 @@
+[Unit]
+Description=Prometheus SLURM Exporter for Kempner Job Metrics
+
+[Service]
+ExecStart=/opt/prometheus-slurm-exporter/slurm_kempner_job_metrics_collector.py
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

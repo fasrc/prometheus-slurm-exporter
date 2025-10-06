@@ -1,5 +1,5 @@
 Name:           prometheus-slurm-exporter
-Version:        1.36
+Version:        1.37
 Release:        1%{?dist}
 Summary:        Prometheus Exporter for Slurm
 
@@ -32,6 +32,7 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-kempner.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-kempner.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-klsload.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-klsload.service
 install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-ksacct.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-ksacct.service
+install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-slurm-exporter-kjm.service %{buildroot}/%{_unitdir}/prometheus-slurm-exporter-kjm.service
 
 %files
 %defattr(-,root,root,-)
@@ -44,8 +45,11 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 %{_unitdir}/prometheus-slurm-exporter-kempner.service
 %{_unitdir}/prometheus-slurm-exporter-klsload.service
 %{_unitdir}/prometheus-slurm-exporter-ksacct.service
+%{_unitdir}/prometheus-slurm-exporter-kjm.service
 
 %changelog
+* Mon Oct 6 Paul Edmon <pedmon@cfa.harvad.edu>
+- Adding kjm exporter.
 * Fri Mar 28 2025 Paul Edmon <pedmon@cfa.harvard.edu>
 - Adding spart exporter
 * Mon Nov 4 2024 Paul Edmon <pedmon@cfa.harvard.edu>
