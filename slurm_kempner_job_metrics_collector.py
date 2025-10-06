@@ -126,18 +126,15 @@ class SlurmJobNodeCollector(Collector):
         yield node_status
 
     def run_cmd(self, cmd):
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
 
 if __name__ == "__main__":
     start_http_server(9009)
     REGISTRY.register(SlurmJobNodeCollector())
     
-    # For testing: run once and keep server alive for data dump
     print("Kempner job metrics collector started. Metrics available at http://localhost:9009/metrics")
-    print("For testing - keeping server alive for 1 hour to allow data collection")
-    time.sleep(3600)  # Keep alive for 1 hour, then exit
     
-    # For production: uncomment the lines below and comment out the testing section above
-    # while True:
-    #     time.sleep(600)  # Collect metrics every 10 minutes
+    # Collect metrics every 30 seconds for telegraf
+    while True:
+        time.sleep(30)
