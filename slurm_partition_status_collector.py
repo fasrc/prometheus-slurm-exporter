@@ -14,6 +14,8 @@ prefix = os.path.normpath(
 external = os.path.join(prefix, 'external')
 sys.path = [prefix, external] + sys.path
 
+os.environ["SLURM_BITSTR_LEN"] = "0"
+
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
 from prometheus_client.registry import Collector
 from prometheus_client import start_http_server
