@@ -48,7 +48,7 @@ install -D -m644 %{_topdir}/BUILD/prometheus-slurm-exporter/systemd/prometheus-s
 %{_unitdir}/prometheus-slurm-exporter-kjm.service
 
 %changelog
-* Mon Oct 6 Paul Edmon <pedmon@cfa.harvad.edu>
+* Mon Oct 6 2025 Paul Edmon <pedmon@cfa.harvad.edu>
 - Adding kjm exporter.
 * Fri Mar 28 2025 Paul Edmon <pedmon@cfa.harvard.edu>
 - Adding spart exporter
