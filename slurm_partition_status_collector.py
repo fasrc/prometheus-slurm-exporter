@@ -379,11 +379,12 @@ class SlurmPartStatusCollector(Collector):
 
             #Grabbing node specific information
             #First we need to reparse the scontrol data
-            jobsplit = line.split('  ')
+            jobsplit = line.split(' Nodes=')
             for i in jobsplit:
               if "NumNodes=" not in i:
-                if "Nodes=" in i:
-                  nodestat = dict(s.split("=", 1) for s in shlex.split(i) if '=' in s)
+                if "CPU_IDs=" in i:
+                  j="Nodes=" + i
+                  nodestat = dict(s.split("=", 1) for s in shlex.split(j) if '=' in s)
 
                   #Getting CPU count
                   cpuid = nodestat["CPU_IDs"].split(',')

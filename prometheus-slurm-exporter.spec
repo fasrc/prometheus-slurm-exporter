@@ -1,5 +1,5 @@
 Name:           prometheus-slurm-exporter
-Version:        1.38
+Version:        1.39
 Release:        1%{?dist}
 Summary:        Prometheus Exporter for Slurm
 
