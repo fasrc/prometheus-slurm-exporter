@@ -255,7 +255,7 @@ class SlurmPartStatusCollector(Collector):
         try:
           user = job["UserId"]
         except:
-          break
+          continue
 
         acct = job["Account"]
 
@@ -467,7 +467,7 @@ class SlurmPartStatusCollector(Collector):
 
     #Current translation from TRES to Double Precision GFLOps
     t2g=93.25
-   
+
     for p in pcpu:
       #General partition stats
       spart.add_metric([p,'','','cpu'],pcpu[p])
