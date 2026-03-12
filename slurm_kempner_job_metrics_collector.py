@@ -58,7 +58,7 @@ class SlurmJobNodeCollector(Collector):
     def collect(self):
         job_state = GaugeMetricFamily('slurm_job_state', 'SLURM job state (1=RUNNING, 0=other)', labels=['job_id', 'state'])
         job_details = GaugeMetricFamily('slurm_job_details', 'Comprehensive SLURM job information from sacct', 
-                                      labels=['job_id', 'job_id_raw', 'user', 'partition', 'account', 'state', 'tres_cpu', 'tres_mem', 'tres_gres', 'start_time', 'end_time', 'elapsed', 'alloc_tres', 'node_list', 'ncpus', 'req_cpus', 'submit', 'eligible'])
+                                      labels=['job_id', 'job_id_raw', 'user', 'partition', 'account', 'state', 'tres_cpu', 'tres_mem', 'tres_gres', 'start_time', 'end_time', 'elapsed', 'alloc_tres', 'node_list', 'ncpus', 'req_cpus', 'submit', 'eligible', 'reason'])
         jobs_per_partition = GaugeMetricFamily('slurm_jobs_per_partition', 'Number of jobs per SLURM partition', labels=['partition'])
         node_status = GaugeMetricFamily('slurm_node_status', 'SLURM node status (1=up, 0=down)', labels=['node', 'state'])
 
@@ -69,15 +69,15 @@ class SlurmJobNodeCollector(Collector):
             job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct', 
                                      '--parsable2', '--noheader', '--allusers', '-X',
                                      '--partition=' + kempner_partitions,
-                                     '--format=JobID,JobIDRaw,User,Partition,Account,State,AllocCPUS,ReqMem,ReqTRES,Start,End,Elapsed,AllocTRES,NodeList,NCPUs,ReqCPUS,Submit,Eligible',
+                                     '--format=JobID,JobIDRaw,User,Partition,Account,State,AllocCPUS,ReqMem,ReqTRES,Start,End,Elapsed,AllocTRES,NodeList,NCPUs,ReqCPUS,Submit,Eligible,Reason',
                                      '--starttime=today'])
             partition_counts = {}
             
             for line in job_output.splitlines():
                 if line.strip():
                     parts = line.strip().split('|')  
-                    if len(parts) >= 18:
-                        job_id, job_id_raw, user, partition, account, state, cpu, memory, tres, start_time, end_time, elapsed, alloc_tres, node_list, ncpus, req_cpus, submit, eligible = parts[0:18]
+                    if len(parts) >= 19:
+                        job_id, job_id_raw, user, partition, account, state, cpu, memory, tres, start_time, end_time, elapsed, alloc_tres, node_list, ncpus, req_cpus, submit, eligible, reason = parts[0:19]
                         
                         # Skip empty or invalid entries
                         if not job_id or not state or not partition:
@@ -93,7 +93,8 @@ class SlurmJobNodeCollector(Collector):
                             cpu or "0", memory or "0", tres or "none", 
                             start_time or "unknown", end_time or "unknown",
                             elapsed or "0", alloc_tres or "none", node_list or "unknown", ncpus or "0", req_cpus or "0",
-                            submit or "unknown", eligible or "unknown"
+                            submit or "unknown", eligible or "unknown",
+                            reason or "unknown"
                         ], 1)
                         
                         partition_counts[partition] = partition_counts.get(partition, 0) + 1
