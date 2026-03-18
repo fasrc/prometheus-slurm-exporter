@@ -69,8 +69,7 @@ class SlurmJobNodeCollector(Collector):
             job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct', 
                                      '--parsable2', '--noheader', '--allusers', '-X',
                                      '--partition=' + kempner_partitions,
-                                     '--format=JobID,JobIDRaw,User,Partition,Account,State,AllocCPUS,ReqMem,ReqTRES,Start,End,Elapsed,AllocTRES,NodeList,NCPUs,ReqCPUS,Submit,Eligible,Reason',
-                                     '--starttime=today'])
+                                     '--format=JobID,JobIDRaw,User,Partition,Account,State,AllocCPUS,ReqMem,ReqTRES,Start,End,Elapsed,AllocTRES,NodeList,NCPUs,ReqCPUS,Submit,Eligible,Reason'])
             partition_counts = {}
             
             for line in job_output.splitlines():
