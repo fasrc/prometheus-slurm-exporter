@@ -246,6 +246,7 @@ class SlurmPartStatusCollector(Collector):
       for line in proc.stdout:
         #Sanitize input
         line = line.replace("'", "\\'")
+        line = line.replace('"', '\\"')
 
         #Turn partition information into a hash
         job = dict(s.split("=", 1) for s in shlex.split(line) if '=' in s)
