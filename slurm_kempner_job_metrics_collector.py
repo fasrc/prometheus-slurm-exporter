@@ -17,6 +17,7 @@ import sys, os
 import subprocess
 import time
 from os import path
+from datetime import datetime, timedelta
 
 prefix = os.path.normpath(
     os.path.join(os.path.abspath(os.path.dirname(__file__)))
@@ -66,10 +67,27 @@ class SlurmJobNodeCollector(Collector):
 
         # Get job data from sacct 
         try:
-            job_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct', 
+            sacct_format = 'JobID,JobIDRaw,User,Partition,Account,State,AllocCPUS,ReqMem,ReqTRES,Start,End,Elapsed,AllocTRES,NodeList,NCPUs,ReqCPUS,Submit,Eligible,Reason'
+            main_output = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct', 
                                      '--parsable2', '--noheader', '--allusers', '-X',
                                      '--partition=' + kempner_partitions,
-                                     '--format=JobID,JobIDRaw,User,Partition,Account,State,AllocCPUS,ReqMem,ReqTRES,Start,End,Elapsed,AllocTRES,NodeList,NCPUs,ReqCPUS,Submit,Eligible,Reason'])
+                                     '--format=' + sacct_format])
+
+            # Supplemental sacct call for the first 2 minutes after midnight.
+            # Catches jobs whose terminal state (COMPLETED, CANCELLED, etc.) fell
+            # through the midnight boundary when sacct's default window resets.
+            now = datetime.now()
+            if now.hour == 0 and now.minute < 2:
+                yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%dT23:58:00')
+                supplemental = self.run_cmd(['timeout', '-s', '9', '60s', '/usr/bin/sacct',
+                                           '--parsable2', '--noheader', '--allusers', '-X',
+                                           '--partition=' + kempner_partitions,
+                                           '--starttime=' + yesterday,
+                                           '--format=' + sacct_format])
+                if supplemental:
+                    main_output = main_output + '\n' + supplemental
+
+            job_output = main_output
             partition_counts = {}
             
             for line in job_output.splitlines():
