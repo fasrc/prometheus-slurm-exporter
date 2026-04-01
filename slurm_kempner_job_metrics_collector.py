@@ -74,8 +74,6 @@ class SlurmJobNodeCollector(Collector):
                                      '--format=' + sacct_format])
 
             # Supplemental sacct call for the first 2 minutes after midnight.
-            # Catches jobs whose terminal state (COMPLETED, CANCELLED, etc.) fell
-            # through the midnight boundary when sacct's default window resets.
             now = datetime.now()
             if now.hour == 0 and now.minute < 2:
                 yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%dT23:58:00')
