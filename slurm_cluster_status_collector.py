@@ -84,8 +84,8 @@ class SlurmClusterStatusCollector(Collector):
 
       tcpu={'skylake': 0, 'milan': 0, 'genoa': 0, 'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0, 'turin': 0}
       ucpu={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0, 'turin': 0}
-      tgpu={'v100': 0, 'rtxa6000': 0, 'a40': 0, 'rtx6000pro': 0:, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
-      ugpu={'v100': 0, 'rtxa6000': 0, 'a40': 0, 'rtx6000pro': 0:, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
+      tgpu={'v100': 0, 'rtxa6000': 0, 'a40': 0, 'rtx6000pro': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
+      ugpu={'v100': 0, 'rtxa6000': 0, 'a40': 0, 'rtx6000pro': 0, 'a100': 0, 'a100-mig': 0, 'h100': 0, 'h200': 0}
       umem={'skylake': 0, 'milan': 0, 'genoa': 0,  'sapphirerapids': 0, 'cascadelake': 0, 'icelake': 0, 'turin': 0}
 
       #Current translation from TRES to Double Precision GFLOps
