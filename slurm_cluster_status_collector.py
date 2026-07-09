@@ -202,9 +202,9 @@ class SlurmClusterStatusCollector(Collector):
       #Calculate Total TRES and Total FLOps
       #This is Harvard specific for the weightings.  Update to match what you need.
       #CPUs first
-      tcputres=0
-      ucputres=0
-      umemtres=0
+      tcputres=0.
+      ucputres=0.
+      umemtres=0.
 
       for p in wcpu:
         tcputres=float(wcpu[p])*float(tcpu[p])+tcputres
@@ -214,8 +214,8 @@ class SlurmClusterStatusCollector(Collector):
       tmemtres=tcputres
 
       #GPUs second
-      tgputres=0
-      ugputres=0
+      tgputres=0.
+      ugputres=0.
 
       for p in wgpu:
         tgputres=float(wgpu[p])*float(tgpu[p])+tgputres
