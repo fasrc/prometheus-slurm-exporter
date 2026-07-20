@@ -92,8 +92,8 @@ class SlurmClusterStatusCollector(Collector):
       t2g=93.25
 
       #Current TRES weights
-      wcpu={'skylake': 0.5, 'milan': 0.5, 'genoa': 0.6, 'sapphirerapids': 0.6, 'cascadelake': 1.0, 'icelake': 1.15, 'turin': 1.5}
-      wgpu={'v100': 75.0, 'rtxa6000': 10.0, 'a40': 10.0, 'rtx6000pro': 21.1, 'a100': 209.1, 'a100-mig': 29.9, 'h100': 546.9, 'h200': 546.9}
+      wcpu={'skylake': 0.4, 'milan': 0.8, 'genoa': 1.1, 'sapphirerapids': 0.6, 'cascadelake': 1.0, 'icelake': 0.9, 'turin': 1.4}
+      wgpu={'v100': 335.1, 'rtxa6000': 401.3, 'a40': 401.3, 'rtx6000pro': 675.6, 'a100': 836.5, 'a100-mig': 119.5, 'h100': 2648.8, 'h200': 2648.8}
 
       #Cycle through each node
       for line in proc.stdout:
