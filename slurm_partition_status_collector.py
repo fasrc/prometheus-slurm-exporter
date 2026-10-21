@@ -6,7 +6,11 @@ A script that gets slurm partition statistics.
 """
 
 import sys,os,subprocess,shlex
-import time
+import time,datetime,math
+
+# Set time parameters
+stimepattern = '%Y-%m-%dT%H:%M:%S'
+current=int(time.time())
 
 prefix = os.path.normpath(
   os.path.join(os.path.abspath(os.path.dirname(__file__)))
@@ -72,7 +76,22 @@ class SlurmPartStatusCollector(Collector):
     plcpu={}
     plmem={}
     plgpu={}
-
+    pwaitave={}
+    pwaitmin={}
+    pwaitmax={}
+    pwaitm2={}
+    pwaitcnt={}
+    pwaitaveuser={}
+    pwaitminuser={}
+    pwaitmaxuser={}
+    pwaitm2user={}
+    pwaitcntuser={}
+    pwaitaveacct={}
+    pwaitminacct={}
+    pwaitmaxacct={}
+    pwaitm2acct={}
+    pwaitcntacct={}
+    
     try:
       proc = subprocess.Popen([
       'timeout','-s','9','60s',
@@ -147,6 +166,11 @@ class SlurmPartStatusCollector(Collector):
         plcpu[partition["PartitionName"]] = 0
         plmem[partition["PartitionName"]] = 0.0
         plgpu[partition["PartitionName"]] = 0
+        pwaitave[partition["PartitionName"]] = 0.0
+        pwaitmin[partition["PartitionName"]] = 0.0
+        pwaitmax[partition["PartitionName"]] = 0.0
+        pwaitm2[partition["PartitionName"]] = 0.0
+        pwaitcnt[partition["PartitionName"]] = 0
 
     #Get node information
     ncpu={}
@@ -269,7 +293,10 @@ class SlurmPartStatusCollector(Collector):
             prestarts[part] = prestarts[part] + int(job["Restarts"])
 
         #Count how many pending jobs per partition, user, and account
+        #Also calculate wait times
         if "PENDING" in job["JobState"]:
+          submit = int(time.mktime(time.strptime(job["SubmitTime"].strip(), stimepattern)))
+          wait = float(current-submit)
 
           #Count array elements as jobs
           if "ArrayTaskId" in job:
@@ -315,6 +342,63 @@ class SlurmPartStatusCollector(Collector):
             except:
               ppendacct[part]={acct: jobcnt}
               ppendacctcnt[part]=ppendacctcnt[part]+1
+              
+            # Wait time stats
+            pwaitmax[part] = max(wait,pwaitmax[part])
+            pwaitmin[part] = min(wait,pwaitmin[part])
+
+            # Calculate running averages for wait time
+            for i in range(jobcnt):
+              pwaitcnt[part] = pwaitcnt[part]+1
+              old_ave = pwaitave[part]
+              pwaitave[part] += (wait-pwaitave[part])/float(pwaitcnt[part])
+              pwaitm2[part] += (wait-pwaitave[part])*(wait-old_ave)
+
+              try:
+                try:
+                  pwaitmaxuser[part][user] = max(wait,pwaitmaxuser[part][user])
+                  pwaitminuser[part][user] = min(wait,pwaitminuser[part][user])
+                  pwaitcntuser[part][user] = pwaitcntuser[part][user]+1
+                  old_ave = pwaitaveuser[part][user]
+                  pwaitaveuser[part][user] += (wait-pwaitaveuser[part][user])/float(pwaitcntuser[part][user])
+                  pwaitm2user[part][user] += (wait-pwaitaveuser[part][user])*(wait-old_ave)
+                except:
+                  pwaitmaxuser[part][user] = wait
+                  pwaitminuser[part][user] = wait
+                  pwaitcntuser[part][user] = 1
+                  old_ave = 0.0
+                  pwaitaveuser[part][user] = (wait)/float(pwaitcntuser[part][user])
+                  pwaitm2user[part][user] = (wait)*(wait-old_ave)
+              except:
+                pwaitmaxuser[part] = {user: wait}
+                pwaitminuser[part] = {user: wait}
+                pwaitcntuser[part] = {user: 1}
+                old_ave = 0.0
+                pwaitaveuser[part] = {user: (wait)/float(pwaitcntuser[part][user])}
+                pwaitm2user[part] = {user: (wait)*(wait-old_ave)}
+
+              try:
+                try:
+                  pwaitmaxacct[part][acct] = max(wait,pwaitmaxacct[part][acct])
+                  pwaitminacct[part][acct] = min(wait,pwaitminacct[part][acct])
+                  pwaitcntacct[part][acct] = pwaitcntacct[part][acct]+1
+                  old_ave = pwaitaveacct[part][acct]
+                  pwaitaveacct[part][acct] += (wait-pwaitaveacct[part][acct])/float(pwaitcntacct[part][acct])
+                  pwaitm2acct[part][acct] += (wait-pwaitaveacct[part][acct])*(wait-old_ave)
+                except:
+                  pwaitmaxacct[part][acct] = wait
+                  pwaitminacct[part][acct] = wait
+                  pwaitcntacct[part][acct] = 1
+                  old_ave = 0.0
+                  pwaitaveacct[part][acct] = (wait)/float(pwaitcntacct[part][acct])
+                  pwaitm2acct[part][acct] = (wait)*(wait-old_ave)
+              except:
+                pwaitmaxacct[part] = {acct: wait}
+                pwaitminacct[part] = {acct: wait}
+                pwaitcntacct[part] = {acct: 1}
+                old_ave = 0.0
+                pwaitaveacct[part] = {acct: (wait)/float(pwaitcntacct[part][acct])}
+                pwaitm2acct[part] = {acct: (wait)*(wait-old_ave)}
 
         #Grab stats on Running jobs
         if "RUNNING" in job["JobState"]:
@@ -377,6 +461,65 @@ class SlurmPartStatusCollector(Collector):
               pmemacct[part]={acct: mem}
               pgpuacct[part]={acct: gpu}
               prunacctcnt[part]=prunacctcnt[part]+1
+
+            # If job started in the last 60 seconds we need to log how long it waited for
+            start = int(time.mktime(time.strptime(job["StartTime"].strip(), stimepattern)))
+
+            if (current-start < 60):
+              submit = int(time.mktime(time.strptime(job["SubmitTime"].strip(), stimepattern)))
+              wait = max(float(start-submit),0)
+              pwaitmax[part] = max(wait,pwaitmax[part])
+              pwaitmin[part] = min(wait,pwaitmin[part])
+              pwaitcnt[part] = pwaitcnt[part]+1
+              old_ave = pwaitave[part]
+              pwaitave[part] += (wait-pwaitave[part])/float(pwaitcnt[part])
+              pwaitm2[part] += (wait-pwaitave[part])*(wait-old_ave)
+
+              try:
+                try:
+                  pwaitmaxuser[part][user] = max(wait,pwaitmaxuser[part][user])
+                  pwaitminuser[part][user] = min(wait,pwaitminuser[part][user])
+                  pwaitcntuser[part][user] = pwaitcntuser[part][user]+1
+                  old_ave = pwaitaveuser[part][user]
+                  pwaitaveuser[part][user] += (wait-pwaitaveuser[part][user])/float(pwaitcntuser[part][user])
+                  pwaitm2user[part][user] += (wait-pwaitaveuser[part][user])*(wait-old_ave)
+                except:
+                  pwaitmaxuser[part][user] = wait
+                  pwaitminuser[part][user] = wait
+                  pwaitcntuser[part][user] = 1
+                  old_ave = 0.0
+                  pwaitaveuser[part][user] = (wait)/float(pwaitcntuser[part][user])
+                  pwaitm2user[part][user] = (wait)*(wait-old_ave)
+              except:
+                pwaitmaxuser[part] = {user: wait}
+                pwaitminuser[part] = {user: wait}
+                pwaitcntuser[part] = {user: 1}
+                old_ave = 0.0
+                pwaitaveuser[part] = {user: (wait)/float(pwaitcntuser[part][user])}
+                pwaitm2user[part] = {user: (wait)*(wait-old_ave)}
+
+              try:
+                try:
+                  pwaitmaxacct[part][acct] = max(wait,pwaitmaxacct[part][acct])
+                  pwaitminacct[part][acct] = min(wait,pwaitminacct[part][acct])
+                  pwaitcntacct[part][acct] = pwaitcntacct[part][acct]+1
+                  old_ave = pwaitaveacct[part][acct]
+                  pwaitaveacct[part][acct] += (wait-pwaitaveacct[part][acct])/float(pwaitcntacct[part][acct])
+                  pwaitm2acct[part][acct] += (wait-pwaitaveacct[part][acct])*(wait-old_ave)
+                except:
+                  pwaitmaxacct[part][acct] = wait
+                  pwaitminacct[part][acct] = wait
+                  pwaitcntacct[part][acct] = 1
+                  old_ave = 0.0
+                  pwaitaveacct[part][acct] = (wait)/float(pwaitcntacct[part][acct])
+                  pwaitm2acct[part][acct] = (wait)*(wait-old_ave)
+              except:
+                pwaitmaxacct[part] = {acct: wait}
+                pwaitminacct[part] = {acct: wait}
+                pwaitcntacct[part] = {acct: 1}
+                old_ave = 0.0
+                pwaitaveacct[part] = {acct: (wait)/float(pwaitcntacct[part][acct])}
+                pwaitm2acct[part] = {acct: (wait)*(wait-old_ave)}
 
             #Grabbing node specific information
             #First we need to reparse the scontrol data
@@ -463,6 +606,15 @@ class SlurmPartStatusCollector(Collector):
               phmem[p] = phmem[p] + npmem[n][sp]
               phgpu[p] = phgpu[p] + npgpu[n][sp]
 
+    # Calculating standard deviation for wait times
+    for part in pwaitcnt:
+      pwaitm2[part]=math.sqrt(pwaitm2[part]/max(1.0,float(pwaitcnt[part])))
+      for user in pwaitcntuser[part]:
+        pwaitm2user[part][user]=math.sqrt(pwaitm2user[part][user]/max(1.0,float(pwaitcntuser[part][user])))
+
+      for acct in pwaitcntacct[part]:
+        pwaitm2acct[part][acct]=math.sqrt(pwaitm2acct[part][acct]/max(1.0,float(pwaitcntacct[part][acct])))
+
     #Export data
     spart = GaugeMetricFamily('spart', 'Partition stats', labels=['partition','user','account','field'])
 
@@ -507,6 +659,11 @@ class SlurmPartStatusCollector(Collector):
       spart.add_metric([p,'','','runusercnt'],prunusercnt[p])
       spart.add_metric([p,'','','runacctcnt'],prunacctcnt[p])
       spart.add_metric([p,'','','restarts'],prestarts[p])
+      spart.add_metric([p,'','','waitave'],pwaitave[p])
+      spart.add_metric([p,'','','waitmin'],pwaitmin[p])
+      spart.add_metric([p,'','','waitmax'],pwaitmax[p])
+      spart.add_metric([p,'','','waitapstd'],pwaitave[p]+pwaitm2[p])
+      spart.add_metric([p,'','','waitamstd'],pwaitave[p]-pwaitm2[p])
 
       #TRES and FLOPS calculation
       trescpu = ptresweightcpu[p]*float(pcpu[p])
@@ -567,6 +724,20 @@ class SlurmPartStatusCollector(Collector):
         spart.add_metric([p,'root(0)','','gpuuser'],0)
         spart.add_metric([p,'root(0)','','tresuser'],0)
 
+      try:
+        for u in pwaitaveuser[p]:
+          spart.add_metric([p,u,'','waitaveuser'],pwaitaveuser[p][u])
+          spart.add_metric([p,u,'','waitminuser'],pwaitminuser[p][u])
+          spart.add_metric([p,u,'','waitmaxuser'],pwaitmaxuser[p][u])
+          spart.add_metric([p,u,'','waitapstduser'],pwaitaveuser[p][u]+pwaitm2user[p][u])
+          spart.add_metric([p,u,'','waitamstduser'],pwaitaveuser[p][u]-pwaitm2user[p][u])
+      except
+        spart.add_metric([p,'root(0)','','waitaveuser'],0)
+        spart.add_metric([p,'root(0)','','waitminuser'],0)
+        spart.add_metric([p,'root(0)','','waitmaxuser'],0)
+        spart.add_metric([p,'root(0)','','waitapstduser'],0)
+        spart.add_metric([p,'root(0)','','waitamstduser'],0)
+
       #Per Account Data
       try:
         for a in ppendacct[p]:
@@ -593,6 +764,20 @@ class SlurmPartStatusCollector(Collector):
         spart.add_metric([p,'','root','memacct'],0)
         spart.add_metric([p,'','root','gpuacct'],0)
         spart.add_metric([p,'','root','tresacct'],0)
+        
+      try:
+        for a in pwaitaveacct[p]:
+          spart.add_metric([p,'',a,'waitaveacct'],pwaitaveacct[p][a])
+          spart.add_metric([p,'',a,'waitminacct'],pwaitminacct[p][a])
+          spart.add_metric([p,'',a,'waitmaxacct'],pwaitmaxacct[p][a])
+          spart.add_metric([p,'',a,'waitapstdacct'],pwaitaveacct[p][a]+pwaitm2acct[p][a])
+          spart.add_metric([p,'',a,'waitamstdacct'],pwaitaveacct[p][a]-pwaitm2acct[p][a])
+      except
+        spart.add_metric([p,'','root','waitaveacct'],0)
+        spart.add_metric([p,'','root','waitminacct'],0)
+        spart.add_metric([p,'','root','waitmaxacct'],0)
+        spart.add_metric([p,'','root','waitapstdacct'],0)
+        spart.add_metric([p,'','root','waitamstdacct'],0)
 
     yield spart
 
