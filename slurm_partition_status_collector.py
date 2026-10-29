@@ -609,11 +609,15 @@ class SlurmPartStatusCollector(Collector):
     # Calculating standard deviation for wait times
     for part in pwaitcnt:
       pwaitm2[part]=math.sqrt(pwaitm2[part]/max(1.0,float(pwaitcnt[part])))
-      for user in pwaitcntuser[part]:
-        pwaitm2user[part][user]=math.sqrt(pwaitm2user[part][user]/max(1.0,float(pwaitcntuser[part][user])))
 
-      for acct in pwaitcntacct[part]:
-        pwaitm2acct[part][acct]=math.sqrt(pwaitm2acct[part][acct]/max(1.0,float(pwaitcntacct[part][acct])))
+      try:
+        for user in pwaitcntuser[part]:
+          pwaitm2user[part][user]=math.sqrt(pwaitm2user[part][user]/max(1.0,float(pwaitcntuser[part][user])))
+
+        for acct in pwaitcntacct[part]:
+          pwaitm2acct[part][acct]=math.sqrt(pwaitm2acct[part][acct]/max(1.0,float(pwaitcntacct[part][acct])))
+      except:
+        continue
 
     #Export data
     spart = GaugeMetricFamily('spart', 'Partition stats', labels=['partition','user','account','field'])
