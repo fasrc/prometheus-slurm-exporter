@@ -731,7 +731,7 @@ class SlurmPartStatusCollector(Collector):
           spart.add_metric([p,u,'','waitmaxuser'],pwaitmaxuser[p][u])
           spart.add_metric([p,u,'','waitapstduser'],pwaitaveuser[p][u]+pwaitm2user[p][u])
           spart.add_metric([p,u,'','waitamstduser'],pwaitaveuser[p][u]-pwaitm2user[p][u])
-      except
+      except:
         spart.add_metric([p,'root(0)','','waitaveuser'],0)
         spart.add_metric([p,'root(0)','','waitminuser'],0)
         spart.add_metric([p,'root(0)','','waitmaxuser'],0)
@@ -764,7 +764,7 @@ class SlurmPartStatusCollector(Collector):
         spart.add_metric([p,'','root','memacct'],0)
         spart.add_metric([p,'','root','gpuacct'],0)
         spart.add_metric([p,'','root','tresacct'],0)
-        
+
       try:
         for a in pwaitaveacct[p]:
           spart.add_metric([p,'',a,'waitaveacct'],pwaitaveacct[p][a])
@@ -772,7 +772,7 @@ class SlurmPartStatusCollector(Collector):
           spart.add_metric([p,'',a,'waitmaxacct'],pwaitmaxacct[p][a])
           spart.add_metric([p,'',a,'waitapstdacct'],pwaitaveacct[p][a]+pwaitm2acct[p][a])
           spart.add_metric([p,'',a,'waitamstdacct'],pwaitaveacct[p][a]-pwaitm2acct[p][a])
-      except
+      except:
         spart.add_metric([p,'','root','waitaveacct'],0)
         spart.add_metric([p,'','root','waitminacct'],0)
         spart.add_metric([p,'','root','waitmaxacct'],0)
