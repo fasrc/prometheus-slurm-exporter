@@ -10,7 +10,6 @@ import time,datetime,math
 
 # Set time parameters
 stimepattern = '%Y-%m-%dT%H:%M:%S'
-current=int(time.time())
 
 prefix = os.path.normpath(
   os.path.join(os.path.abspath(os.path.dirname(__file__)))
@@ -91,6 +90,9 @@ class SlurmPartStatusCollector(Collector):
     pwaitmaxacct={}
     pwaitm2acct={}
     pwaitcntacct={}
+
+    #Get current time
+    current=int(time.time())
     
     try:
       proc = subprocess.Popen([
